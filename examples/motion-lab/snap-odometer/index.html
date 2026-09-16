@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>04 磁吸游标与滚动码表 · Motion Lab</title><style>
+:root{font-family:Inter,"Segoe UI","Microsoft YaHei",sans-serif;color:#edf0ed;background:#111817;font-synthesis:none;--orange:#ff931e;--muted:#86938f;--line:#ffffff15;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;min-width:280px;background:radial-gradient(ellipse at 10% 0,#28413b44,transparent 65%),#111817}button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--orange);outline-offset:5px}button{color:inherit}button:disabled{cursor:default;opacity:.55}a{color:inherit}main{max-width:1100px;margin:auto;padding:44px 40px 28px}.heading{display:flex;gap:18px;align-items:center;margin-bottom:32px}.number{background:var(--orange);color:#141b18;font:bold 19px ui-monospace,monospace;padding:10px 12px;border-radius:10px}h1{font-size:clamp(22px,4vw,32px);margin:0 0 7px;letter-spacing:-.6px}.english{color:var(--muted);font:11px ui-monospace,monospace;letter-spacing:3px}.lab{display:grid;grid-template-columns:minmax(0,1fr) 260px;min-height:560px;border:1px solid var(--line);border-radius:24px;background:#0a100e55;overflow:hidden}.demo{min-width:0;min-height:560px;padding:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;gap:22px}.readout{border-left:1px solid var(--line);padding:28px 26px;display:flex;flex-direction:column;gap:24px}.live{font:10px ui-monospace,monospace;letter-spacing:2px;color:var(--muted);display:flex;gap:9px;align-items:center}.live:before{content:"";width:5px;height:5px;border-radius:50%;background:var(--orange)}.metric small{display:block;color:var(--muted);font:10px ui-monospace,monospace;letter-spacing:2px;margin-bottom:7px}.metric output{color:var(--orange);font-size:32px;letter-spacing:-1px;font-weight:550;line-height:1.2;word-break:break-word}.trace{width:100%;height:90px;margin-top:auto;border-bottom:1px solid #ffffff15}.trace path{fill:none;stroke:#bac9c3;stroke-width:1.5}.trace-label{color:#63736c;font:9px ui-monospace,monospace;margin-top:-16px}.instruction{font-size:12px;text-align:center;line-height:1.8;color:#a1b0a9;margin:0}.prompt{padding:23px 4px 0}.prompt h2{font-size:11px;color:var(--orange);margin:0 0 10px;letter-spacing:2px}.prompt p{font-size:14px;line-height:1.9;margin:0;color:#aab7b0}.toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.control{border:1px solid #ffffff25;border-radius:100px;background:#ffffff08;padding:9px 17px;font-size:12px}.control:hover{background:#ffffff12}.control.active{background:var(--orange);color:#141914;border-color:transparent}.primary{border:0;background:var(--orange);color:#152019;font-weight:600;border-radius:100px;padding:13px 22px}.phone{position:relative;width:min(300px,100%);height:510px;border:7px solid #272f2a;border-radius:38px;background:#080d0a;overflow:hidden;box-shadow:0 20px 45px #0004;isolation:isolate}.phone-header{padding:25px 17px 15px}.phone-header h2{font-size:26px;margin:0 0 3px}.phone-header p{font-size:11px;margin:0;color:#81928a}.landscape{width:100%;height:100%;display:block;object-fit:cover}.status{font-size:12px;color:#bbc9c1;min-height:20px;text-align:center}.range-row{display:flex;align-items:center;gap:12px;font-size:12px;color:#95a69e}.range-row input{accent-color:var(--orange);width:130px}button svg{pointer-events:none}
+@media(max-width:720px){main{padding:24px 16px}.heading{margin-bottom:22px;gap:12px}.lab{grid-template-columns:1fr}.demo{padding:24px 16px;min-height:510px}.readout{border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;padding:22px 18px}.live{grid-column:1/-1}.metric output{font-size:23px}.metric small{font-size:8px;letter-spacing:1px}.trace,.trace-label{display:none}.prompt p{font-size:13px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
+
+.chart-panel{width:min(440px,100%)}.micro{font:10px ui-monospace,monospace;letter-spacing:2px;color:#91a398}.speed{display:flex;align-items:baseline;gap:10px;margin:15px 0 20px}.odometer{display:flex;height:76px;overflow:hidden;font:600 68px/76px ui-monospace,monospace;letter-spacing:-5px}.digit{width:42px;height:76px;overflow:hidden}.strip span{display:block;height:76px;text-align:center}.decimal{width:22px;text-align:center}.unit{font-size:20px;color:#809287}.chart-touch{touch-action:none;cursor:ew-resize;outline-offset:8px}.chart{width:100%;display:block;overflow:visible}.grid path{stroke:#ffffff0b;fill:none}.line{fill:none;stroke:#e7eee9;stroke-width:2;stroke-linejoin:round}.area{fill:#8cae960c}.dots circle{fill:#98b4a1}.cursor-line{stroke:#ff931e80;stroke-width:1}.cursor-halo{fill:#ff931e18}.cursor-dot{fill:var(--orange);stroke:#ffba62;stroke-width:2}.chart-times{display:flex;justify-content:space-between;font:9px ui-monospace,monospace;color:#637b6b;padding:10px 0}.chart-caption{border-top:1px solid var(--line);padding-top:20px;font-size:12px;color:#a0b2a5}.chart-caption b{color:var(--orange)}.chart-caption span{float:right;font-size:10px;color:#617e6b}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+</style></head><body>
+<main><header class="heading"><span class="number">04</span><div><h1>磁吸游标与滚动码表</h1><div class="english">SNAP ODOMETER</div></div></header><section class="lab"><div class="demo"><div class="chart-panel"><p class="micro">TOP SPEED / 滑行速度</p><div class="speed"><div class="odometer" aria-hidden="true"><div class="digit"><div class="strip"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div></div><div class="digit"><div class="strip"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div></div><span class="decimal">.</span><div class="digit"><div class="strip"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div></div></div><span class="unit">km/h</span></div><output class="sr-only" id="speed-label">速度 31.2 km/h</output><div class="chart-touch" role="slider" tabindex="0" aria-label="滑行数据点" aria-valuemin="1" aria-valuemax="12" aria-valuenow="1"><svg class="chart" viewBox="0 0 420 260"><g class="grid"><path d="M20 40H400 M20 90H400 M20 140H400 M20 190H400 M20 240H400"/></g><path class="area"/><path class="line"/><g class="dots"></g><line class="cursor-line" y1="20" y2="245"/><circle class="cursor-halo" r="16"/><circle class="cursor-dot" r="5"/></svg><div class="chart-times"><span>09:00</span><span>09:30</span><span>10:00</span></div></div><p class="chart-caption">第 <b id="point-number">1</b> 个采样点 <span>12 个采样 · 演示数据</span></p></div><p class="instruction">拖动图表游标靠近数据点吸附 · 松手锁定最近点 · 支持方向键</p></div><aside class="readout" aria-label="实时参数"><div class="live">LIVE READOUT</div><div class="metric"><small>CURSOR X</small><output data-metric="cursor" aria-live="off">—</output></div><div class="metric"><small>SNAP</small><output data-metric="snap" aria-live="off">—</output></div><div class="metric"><small>VALUE</small><output data-metric="value" aria-live="off">—</output></div><svg class="trace" viewBox="0 0 220 90" aria-hidden="true"><path/></svg><span class="trace-label">MOTION HISTORY / 动态轨迹</span></aside></section><section class="prompt"><h2>AI 提示词 / 原文提取</h2><p>折线图横向滑动带数据点磁吸吸附，顶部数值使用滚动计数器（Odometer / Ticker）实时平滑联动。</p></section></main>
+<script>
+(() => {
+// Shared by the exported standalone examples; no network or third-party runtime.
+const $ = selector => document.querySelector(selector);
+const $$ = selector => [...document.querySelectorAll(selector)];
+const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
+const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
+const animations = new Set();
+function spring(initial, render, { stiffness = 260, damping = 25, epsilon = .002 } = {}) {
+  let value = initial, velocity = 0, target = initial, frame = 0, last = 0, done;
+  const api = {
+    get value() { return value; },
+    get velocity() { return velocity; },
+    to(next, onDone) {
+      target = next; done = onDone;
+      if (motionPreference.matches) { api.jump(next); onDone?.(); return; }
+      if (!frame) { last = performance.now(); frame = requestAnimationFrame(tick); }
+    },
+    jump(next) { cancelAnimationFrame(frame); frame = 0; value = target = next; velocity = 0; done = undefined; render(value, velocity); },
+    stop() { cancelAnimationFrame(frame); frame = 0; done = undefined; },
+    finish() { const callback = done; api.jump(target); callback?.(); },
+    destroy() { api.stop(); animations.delete(api); },
+  };
+  function tick(now) {
+    const dt = Math.min((now - last) / 1000, .032); last = now;
+    for (let i = 0; i < 4; i++) {
+      velocity += ((target - value) * stiffness - velocity * damping) * dt / 4;
+      value += velocity * dt / 4;
+    }
+    if (Math.abs(value - target) < epsilon && Math.abs(velocity) < epsilon) {
+      frame = 0; value = target; velocity = 0; render(value, velocity);
+      const callback = done; done = undefined; callback?.();
+    } else { render(value, velocity); frame = requestAnimationFrame(tick); }
+  }
+  animations.add(api); render(value, velocity); return api;
+}
+motionPreference.addEventListener('change', () => {
+  if (motionPreference.matches) [...animations].forEach(animation => animation.finish());
+});
+window.addEventListener('pagehide', () => animations.forEach(animation => animation.stop()));
+function metric(name, value) { const element = document.querySelector('[data-metric="' + name + '"]'); if (element) element.textContent = value; }
+const history = [];
+let traceTime = 0;
+function trace(value) {
+  const now = performance.now();
+  if (now - traceTime < 28) return; traceTime = now;
+  history.push(clamp(value, 0, 1)); if (history.length > 90) history.shift();
+  const path = $('.trace path');
+  if (path) path.setAttribute('d', history.map((point, i) => (i ? 'L' : 'M') + (i * 220 / 89).toFixed(1) + ',' + (80 - point * 65).toFixed(1)).join(' '));
+}
+function drag(element, { start, move, end }) {
+  let pointer = null;
+  element.addEventListener('pointerdown', event => {
+    if (!event.isPrimary || event.button !== 0 || pointer !== null) return;
+    pointer = event.pointerId; element.setPointerCapture(pointer); start?.(event);
+  });
+  element.addEventListener('pointermove', event => { if (event.pointerId === pointer) move?.(event); });
+  function finish(event, cancelled = false) {
+    if (pointer === null || (event && event.pointerId !== pointer)) return;
+    const id = pointer; pointer = null;
+    if (element.hasPointerCapture(id)) element.releasePointerCapture(id);
+    end?.(event, cancelled);
+  }
+  element.addEventListener('pointerup', event => finish(event));
+  element.addEventListener('pointercancel', event => finish(event, true));
+  element.addEventListener('lostpointercapture', event => finish(event, true));
+  window.addEventListener('blur', () => finish(null, true));
+  document.addEventListener('visibilitychange', () => { if (document.hidden) finish(null, true); });
+}
+
+(function(){
+      const values=[31.2,43.6,37.8,58.4,52.1,67.8,76.2,64.5,49.3,71.6,80.4,55.8];
+      const touch=$('.chart-touch'),svg=$('.chart');const x=i=>20+i*380/(values.length-1),y=v=>240-(v-25)/60*200;
+      const points=values.map((v,i)=>x(i)+','+y(v)).join(' L');$('.line').setAttribute('d','M'+points);$('.area').setAttribute('d','M20,240 L'+points+' L400,240Z');
+      $('.dots').innerHTML=values.map((v,i)=>'<circle cx="'+x(i)+'" cy="'+y(v)+'" r="3"/>').join('');
+      const digits=$$('.strip').map((strip,i)=>{const initial=[3,1,2][i];const roller=spring(10+initial,value=>strip.style.transform='translateY('+(-value*76)+'px)',{stiffness:300,damping:29});return {roller,target:10+initial,last:initial};});
+      function roll(value){
+        const chars=value.toFixed(1).replace('.','').padStart(3,'0');
+        digits.forEach((digit,i)=>{
+          const next=Number(chars[i]);if(next===digit.last)return;
+          let delta=next-digit.last;if(delta>5)delta-=10;if(delta< -5)delta+=10;
+          digit.target+=delta;digit.last=next;
+          // Normalize only offscreen, preserving the current displacement and target.
+          if(digit.target<5){digit.roller.jump(digit.roller.value+10);digit.target+=10;}
+          if(digit.target>24){digit.roller.jump(digit.roller.value-10);digit.target-=10;}
+          digit.roller.to(digit.target);
+        });
+      }
+      let selected=0;
+      const cursor=spring(0,index=>{
+        index=clamp(index,0,values.length-1);const lo=Math.floor(index),hi=Math.min(lo+1,values.length-1),value=values[lo]+(values[hi]-values[lo])*(index-lo);
+        const cx=x(index),cy=y(value);$('.cursor-line').setAttribute('x1',cx);$('.cursor-line').setAttribute('x2',cx);
+        ['.cursor-dot','.cursor-halo'].forEach(selector=>{$(selector).setAttribute('cx',cx);$(selector).setAttribute('cy',cy);});
+        roll(value);metric('cursor',Math.round(cx));metric('value',value.toFixed(1));trace((value-25)/60);$('#speed-label').textContent='速度 '+value.toFixed(1)+' km/h';
+      },{stiffness:350,damping:32});
+      function set(index,snap){selected=clamp(index,0,11);cursor.to(selected);metric('snap',snap?'POINT '+(Math.round(selected)+1):'FREE');$('#point-number').textContent=String(Math.round(selected)+1);touch.setAttribute('aria-valuenow',Math.round(selected)+1);touch.setAttribute('aria-valuetext',values[Math.round(selected)]+' km/h');}
+      function follow(event){const r=svg.getBoundingClientRect();let index=clamp(((event.clientX-r.left)/r.width*420-20)/380*11,0,11);const nearest=Math.round(index),snapped=Math.abs(index-nearest)<.22;if(snapped)index=nearest;set(index,snapped);}
+      drag(touch,{start:event=>{touch.focus({preventScroll:true});follow(event);},move:follow,end:()=>set(Math.round(selected),true)});
+      touch.addEventListener('keydown',event=>{let target;if(event.key==='ArrowRight'||event.key==='ArrowUp')target=Math.round(selected)+1;else if(event.key==='ArrowLeft'||event.key==='ArrowDown')target=Math.round(selected)-1;else if(event.key==='Home')target=0;else if(event.key==='End')target=11;else return;event.preventDefault();set(target,true);});set(0,true);
+    })();
+})();
+</script></body></html>

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>流光 · 3D 触感卡片</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100svh;display:grid;place-items:center;background:#090c12;color:#eef4ff;font-family:Inter,"Segoe UI","Microsoft YaHei",sans-serif;background-image:radial-gradient(ellipse at 50% 45%,#1c294444,transparent 65%)}
+main{width:100%;padding:40px 24px;display:grid;justify-items:center;gap:36px}
+header{text-align:center}h1{font-size:24px;font-weight:500;letter-spacing:4px;margin:0 0 12px}header p{font-size:12px;color:#8a98af;letter-spacing:2px;margin:0}
+.stage{width:min(330px,100%);aspect-ratio: .72;perspective:900px;touch-action:none;outline:none;cursor:grab}
+.stage:active{cursor:grabbing}.stage:focus-visible{outline:2px solid #b9d8ff;outline-offset:14px;border-radius:26px}
+.card{--px:50%;--py:50%;--light:0;position:relative;width:100%;height:100%;border-radius:26px;transform-style:preserve-3d;background:linear-gradient(140deg,#253651,#101827 48%,#302c43);border:1px solid #b7d0f54d;box-shadow:0 30px 65px #0008,inset 0 1px 0 #fff3;will-change:transform;pointer-events:none}
+.surface{position:absolute;inset:0;border-radius:inherit;overflow:hidden;background:repeating-linear-gradient(115deg,transparent 0 3px,#ffffff02 3px 4px)}
+.surface:before{content:"";position:absolute;inset:-35%;background:conic-gradient(from 20deg at var(--px) var(--py),#7ce9ff00,#7ce9ff33,#c3b0ff44,#ffc6dd22,#efffc933,#7ce9ff00);mix-blend-mode:screen;opacity:calc(.28 + var(--light)*.6)}
+.surface:after{content:"";position:absolute;inset:0;background:radial-gradient(circle at var(--px) var(--py),#fff9 0%,#d6edff33 15%,#9bbcff0d 35%,transparent 65%);mix-blend-mode:screen;opacity:var(--light)}
+.content{position:absolute;inset:28px;display:flex;flex-direction:column;justify-content:space-between;transform:translateZ(32px)}
+.top,.bottom{display:flex;justify-content:space-between;align-items:center}.brand{font-size:11px;letter-spacing:3px}.edition{font-size:9px;color:#c3cddd;letter-spacing:1px}.mark{font-size:20px;color:#cfdef7}
+.art{position:absolute;inset:24% 17% 28%;transform:translateZ(45px);display:grid;place-items:center}
+.ring{position:absolute;width:100%;aspect-ratio:1;border:1px solid #dcecff88;border-radius:50%;box-shadow:inset 5px 0 14px #8ad9ff22,3px 0 12px #bfa8ff22;transform:rotate(-35deg) scaleX(.53)}
+.ring:nth-child(2){transform:rotate(25deg) scaleX(.53)}.ring:nth-child(3){transform:rotate(85deg) scaleX(.53)}
+.core{width:56px;height:56px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff,#c9e7fa 18%,#8ba9d0 42%,#3e456b 70%,#171f36);box-shadow:0 0 38px #aecfff44}
+.name{margin-top:auto;margin-bottom:30px}.name h2{font-family:Georgia,serif;font-size:clamp(32px,8vw,43px);font-weight:400;letter-spacing:-1px;margin:0 0 8px}.name p{font-size:10px;letter-spacing:3px;color:#a9b8d0;margin:0}
+.bottom{border-top:1px solid #ffffff20;padding-top:18px;font-size:9px;letter-spacing:2px;color:#acbdd4}.bottom b{font-size:16px;font-weight:400;color:#d6e5ff}
+.hint{text-align:center;font-size:12px;color:#a1aec2;line-height:1.9;margin:0}.hint span{display:block;font-size:10px;color:#58667c;letter-spacing:1px}
+@media(max-height:650px){main{gap:20px;padding:24px}.stage{width:min(260px,75vw)}header h1{font-size:20px}.content{inset:22px}.name{margin-bottom:18px}}
+@media(prefers-reduced-motion:reduce){.card{will-change:auto}}
+</style>
+</head>
+<body>
+<main>
+ <header><h1>指尖，折射微光。</h1><p>一张有触感的交互卡片</p></header>
+ <div class="stage" tabindex="0" role="img" aria-label="流光交互卡片。移动鼠标或按住拖动体验倾斜，方向键也可控制，松开回正。">
+  <article class="card">
+   <div class="surface"></div>
+   <div class="art" aria-hidden="true"><i class="ring"></i><i class="ring"></i><i class="ring"></i><i class="core"></i></div>
+   <div class="content"><div class="top"><span class="brand">PRISM / 光谱</span><span class="mark">✳</span></div><div class="name"><h2>Stay in motion.</h2><p>捕捉每一束灵感</p></div><div class="bottom"><span>INTERACTIVE EDITION</span><b>001</b></div></div>
+  </article>
+ </div>
+ <p class="hint">移动鼠标，或按住卡片轻轻拖动<span>跟随倾斜 · 径向反光 · 弹性回正</span></p>
+</main>
+<script>
+const stage = document.querySelector('.stage');
+const card = document.querySelector('.card');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+const state = {x:0,y:0,vx:0,vy:0,tx:0,ty:0,light:0,targetLight:0};
+let frame = 0, previous = 0, activePointer = null;
+function paint(){
+ card.style.transform = 'rotateX('+state.x+'deg) rotateY('+state.y+'deg)';
+ card.style.setProperty('--light',state.light.toFixed(4));
+}
+function animate(time){
+ const dt = Math.min((time-previous)/1000 || 1/60,1/30); previous=time;
+ // Substeps keep the damped spring stable across different refresh rates.
+ const steps=4, h=dt/steps;
+ for(let i=0;i<steps;i++){
+  state.vx+=((state.tx-state.x)*210-state.vx*19)*h;
+  state.vy+=((state.ty-state.y)*210-state.vy*19)*h;
+  state.x+=state.vx*h; state.y+=state.vy*h;
+ }
+ state.light+=(state.targetLight-state.light)*(1-Math.exp(-12*dt));
+ if(reduced.matches){state.x=state.y=state.vx=state.vy=0;state.light=state.targetLight;}
+ const settled=Math.abs(state.x-state.tx)+Math.abs(state.y-state.ty)+Math.abs(state.vx)+Math.abs(state.vy)<.015 && Math.abs(state.light-state.targetLight)<.001;
+ if(settled || reduced.matches){state.x=reduced.matches?0:state.tx;state.y=reduced.matches?0:state.ty;state.vx=state.vy=0;state.light=state.targetLight;frame=0;paint();return;}
+ paint();frame=requestAnimationFrame(animate);
+}
+function wake(){if(!frame){previous=performance.now();frame=requestAnimationFrame(animate);}}
+function follow(event){
+ if(activePointer!==null && event.pointerId!==activePointer)return;
+ if(event.pointerType!=='mouse' && activePointer===null)return;
+ // Measure the stationary hit area, never the transformed card.
+ const bounds=stage.getBoundingClientRect();
+ const x=Math.max(0,Math.min(1,(event.clientX-bounds.left)/bounds.width));
+ const y=Math.max(0,Math.min(1,(event.clientY-bounds.top)/bounds.height));
+ state.tx=(.5-y)*24;state.ty=(x-.5)*28;state.targetLight=1;
+ card.style.setProperty('--px',x*100+'%');card.style.setProperty('--py',y*100+'%');wake();
+}
+function reset(){state.tx=state.ty=state.targetLight=0;wake();}
+function release(event){
+ if(activePointer!==null && event && event.pointerId!==activePointer)return;
+ const id=activePointer;activePointer=null;
+ if(id!==null && stage.hasPointerCapture(id))stage.releasePointerCapture(id);
+ reset();
+}
+stage.addEventListener('pointerdown',event=>{
+ if(activePointer!==null || !event.isPrimary || event.button!==0)return;
+ activePointer=event.pointerId;stage.setPointerCapture(event.pointerId);follow(event);
+});
+stage.addEventListener('pointermove',follow);
+stage.addEventListener('pointerleave',()=>{if(activePointer===null)reset();});
+stage.addEventListener('pointerup',release);
+stage.addEventListener('pointercancel',release);
+stage.addEventListener('lostpointercapture',()=>{activePointer=null;reset();});
+window.addEventListener('blur',()=>release());
+stage.addEventListener('blur',()=>release());
+stage.addEventListener('keydown',event=>{
+ const directions={ArrowUp:[10,0],ArrowDown:[-10,0],ArrowLeft:[0,-12],ArrowRight:[0,12]};
+ if(!directions[event.key])return;event.preventDefault();
+ [state.tx,state.ty]=directions[event.key];state.targetLight=1;
+ card.style.setProperty('--px',50+state.ty*3+'%');card.style.setProperty('--py',50-state.tx*3+'%');wake();
+});
+stage.addEventListener('keyup',event=>{if(event.key.startsWith('Arrow'))reset();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)release();});
+reduced.addEventListener('change',()=>reset());
+</script>
+</body>
+</html>

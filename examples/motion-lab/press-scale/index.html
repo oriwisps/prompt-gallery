@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>08 弹性微缩触觉反馈 · Motion Lab</title><style>
+:root{font-family:Inter,"Segoe UI","Microsoft YaHei",sans-serif;color:#edf0ed;background:#111817;font-synthesis:none;--orange:#ff931e;--muted:#86938f;--line:#ffffff15;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;min-width:280px;background:radial-gradient(ellipse at 10% 0,#28413b44,transparent 65%),#111817}button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--orange);outline-offset:5px}button{color:inherit}button:disabled{cursor:default;opacity:.55}a{color:inherit}main{max-width:1100px;margin:auto;padding:44px 40px 28px}.heading{display:flex;gap:18px;align-items:center;margin-bottom:32px}.number{background:var(--orange);color:#141b18;font:bold 19px ui-monospace,monospace;padding:10px 12px;border-radius:10px}h1{font-size:clamp(22px,4vw,32px);margin:0 0 7px;letter-spacing:-.6px}.english{color:var(--muted);font:11px ui-monospace,monospace;letter-spacing:3px}.lab{display:grid;grid-template-columns:minmax(0,1fr) 260px;min-height:560px;border:1px solid var(--line);border-radius:24px;background:#0a100e55;overflow:hidden}.demo{min-width:0;min-height:560px;padding:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;gap:22px}.readout{border-left:1px solid var(--line);padding:28px 26px;display:flex;flex-direction:column;gap:24px}.live{font:10px ui-monospace,monospace;letter-spacing:2px;color:var(--muted);display:flex;gap:9px;align-items:center}.live:before{content:"";width:5px;height:5px;border-radius:50%;background:var(--orange)}.metric small{display:block;color:var(--muted);font:10px ui-monospace,monospace;letter-spacing:2px;margin-bottom:7px}.metric output{color:var(--orange);font-size:32px;letter-spacing:-1px;font-weight:550;line-height:1.2;word-break:break-word}.trace{width:100%;height:90px;margin-top:auto;border-bottom:1px solid #ffffff15}.trace path{fill:none;stroke:#bac9c3;stroke-width:1.5}.trace-label{color:#63736c;font:9px ui-monospace,monospace;margin-top:-16px}.instruction{font-size:12px;text-align:center;line-height:1.8;color:#a1b0a9;margin:0}.prompt{padding:23px 4px 0}.prompt h2{font-size:11px;color:var(--orange);margin:0 0 10px;letter-spacing:2px}.prompt p{font-size:14px;line-height:1.9;margin:0;color:#aab7b0}.toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.control{border:1px solid #ffffff25;border-radius:100px;background:#ffffff08;padding:9px 17px;font-size:12px}.control:hover{background:#ffffff12}.control.active{background:var(--orange);color:#141914;border-color:transparent}.primary{border:0;background:var(--orange);color:#152019;font-weight:600;border-radius:100px;padding:13px 22px}.phone{position:relative;width:min(300px,100%);height:510px;border:7px solid #272f2a;border-radius:38px;background:#080d0a;overflow:hidden;box-shadow:0 20px 45px #0004;isolation:isolate}.phone-header{padding:25px 17px 15px}.phone-header h2{font-size:26px;margin:0 0 3px}.phone-header p{font-size:11px;margin:0;color:#81928a}.landscape{width:100%;height:100%;display:block;object-fit:cover}.status{font-size:12px;color:#bbc9c1;min-height:20px;text-align:center}.range-row{display:flex;align-items:center;gap:12px;font-size:12px;color:#95a69e}.range-row input{accent-color:var(--orange);width:130px}button svg{pointer-events:none}
+@media(max-width:720px){main{padding:24px 16px}.heading{margin-bottom:22px;gap:12px}.lab{grid-template-columns:1fr}.demo{padding:24px 16px;min-height:510px}.readout{border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;padding:22px 18px}.live{grid-column:1/-1}.metric output{font-size:23px}.metric small{font-size:8px;letter-spacing:1px}.trace,.trace-label{display:none}.prompt p{font-size:13px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
+
+.press-stage{background:#e5e9e1;color:#19251a;border-radius:24px;width:min(420px,100%);padding:44px 25px 30px;text-align:center}.press-stage>p:first-child{font:10px ui-monospace,monospace;letter-spacing:3px;color:#768471;margin:0 0 14px}.press-stage h2{font-size:23px;font-weight:550;margin:0 0 52px}.run-button{width:100%;border:0;border-radius:100px;background:#263d28;color:#eff9e9;padding:25px 12px;font-size:29px;font-weight:600;touch-action:none;will-change:transform;user-select:none;-webkit-user-select:none}.run-button span{display:inline-block;font-size:24px;margin-left:12px}.tracks{display:grid;justify-items:center;gap:7px;margin-top:28px}.tracks i{height:5px;border-radius:9px;background:#c6cec0;width:75%}.tracks i:nth-child(2){width:55%}.press-stage .run-status{font-size:11px;color:#637a5d;margin:27px 0 0;min-height:18px;line-height:1.6}
+</style></head><body>
+<main><header class="heading"><span class="number">08</span><div><h1>弹性微缩触觉反馈</h1><div class="english">PRESS SCALE</div></div></header><section class="lab"><div class="demo"><div class="press-stage"><p>READY TO RIDE</p><h2>Nordkette · 46 cm</h2><button class="run-button">Start Run <span>→</span></button><div class="tracks"><i></i><i></i></div><p class="run-status" aria-live="polite">你的下一次滑行，从这里开始。</p></div><p class="instruction">按住按钮感受压缩 · 松手轻微超调回弹 · 支持空格及回车</p></div><aside class="readout" aria-label="实时参数"><div class="live">LIVE READOUT</div><div class="metric"><small>SCALE</small><output data-metric="scale" aria-live="off">—</output></div><div class="metric"><small>SHADOW</small><output data-metric="shadow" aria-live="off">—</output></div><div class="metric"><small>OVERSHOOT</small><output data-metric="overshoot" aria-live="off">—</output></div><svg class="trace" viewBox="0 0 220 90" aria-hidden="true"><path/></svg><span class="trace-label">MOTION HISTORY / 动态轨迹</span></aside></section><section class="prompt"><h2>AI 提示词 / 原文提取</h2><p>按钮按压添加scale(0.96)物理弹性压缩与深度内阴影，释放时触发轻微超调回弹（Spring Overshoot）。</p></section></main>
+<script>
+(() => {
+// Shared by the exported standalone examples; no network or third-party runtime.
+const $ = selector => document.querySelector(selector);
+const $$ = selector => [...document.querySelectorAll(selector)];
+const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
+const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
+const animations = new Set();
+function spring(initial, render, { stiffness = 260, damping = 25, epsilon = .002 } = {}) {
+  let value = initial, velocity = 0, target = initial, frame = 0, last = 0, done;
+  const api = {
+    get value() { return value; },
+    get velocity() { return velocity; },
+    to(next, onDone) {
+      target = next; done = onDone;
+      if (motionPreference.matches) { api.jump(next); onDone?.(); return; }
+      if (!frame) { last = performance.now(); frame = requestAnimationFrame(tick); }
+    },
+    jump(next) { cancelAnimationFrame(frame); frame = 0; value = target = next; velocity = 0; done = undefined; render(value, velocity); },
+    stop() { cancelAnimationFrame(frame); frame = 0; done = undefined; },
+    finish() { const callback = done; api.jump(target); callback?.(); },
+    destroy() { api.stop(); animations.delete(api); },
+  };
+  function tick(now) {
+    const dt = Math.min((now - last) / 1000, .032); last = now;
+    for (let i = 0; i < 4; i++) {
+      velocity += ((target - value) * stiffness - velocity * damping) * dt / 4;
+      value += velocity * dt / 4;
+    }
+    if (Math.abs(value - target) < epsilon && Math.abs(velocity) < epsilon) {
+      frame = 0; value = target; velocity = 0; render(value, velocity);
+      const callback = done; done = undefined; callback?.();
+    } else { render(value, velocity); frame = requestAnimationFrame(tick); }
+  }
+  animations.add(api); render(value, velocity); return api;
+}
+motionPreference.addEventListener('change', () => {
+  if (motionPreference.matches) [...animations].forEach(animation => animation.finish());
+});
+window.addEventListener('pagehide', () => animations.forEach(animation => animation.stop()));
+function metric(name, value) { const element = document.querySelector('[data-metric="' + name + '"]'); if (element) element.textContent = value; }
+const history = [];
+let traceTime = 0;
+function trace(value) {
+  const now = performance.now();
+  if (now - traceTime < 28) return; traceTime = now;
+  history.push(clamp(value, 0, 1)); if (history.length > 90) history.shift();
+  const path = $('.trace path');
+  if (path) path.setAttribute('d', history.map((point, i) => (i ? 'L' : 'M') + (i * 220 / 89).toFixed(1) + ',' + (80 - point * 65).toFixed(1)).join(' '));
+}
+function drag(element, { start, move, end }) {
+  let pointer = null;
+  element.addEventListener('pointerdown', event => {
+    if (!event.isPrimary || event.button !== 0 || pointer !== null) return;
+    pointer = event.pointerId; element.setPointerCapture(pointer); start?.(event);
+  });
+  element.addEventListener('pointermove', event => { if (event.pointerId === pointer) move?.(event); });
+  function finish(event, cancelled = false) {
+    if (pointer === null || (event && event.pointerId !== pointer)) return;
+    const id = pointer; pointer = null;
+    if (element.hasPointerCapture(id)) element.releasePointerCapture(id);
+    end?.(event, cancelled);
+  }
+  element.addEventListener('pointerup', event => finish(event));
+  element.addEventListener('pointercancel', event => finish(event, true));
+  element.addEventListener('lostpointercapture', event => finish(event, true));
+  window.addEventListener('blur', () => finish(null, true));
+  document.addEventListener('visibilitychange', () => { if (document.hidden) finish(null, true); });
+}
+
+(function(){
+      const button=$('.run-button');let pressed=false,runs=0,peak=0;
+      const scale=spring(1,value=>{
+        button.style.transform='scale('+value+')';const depth=clamp((1-value)/.04,0,1);
+        button.style.boxShadow='inset 0 '+(depth*7)+'px '+(depth*16)+'px #0008, 0 '+(4-depth*4)+'px '+(12-depth*8)+'px #172c1820';
+        peak=Math.max(peak,(value-1)*100);metric('scale',value.toFixed(3));metric('shadow',Math.round(depth*100)+'%');metric('overshoot','+'+peak.toFixed(1)+'%');trace((value-.95)/.075);
+      },{stiffness:420,damping:19,epsilon:.0001});
+      function down(){if(pressed)return;pressed=true;peak=0;scale.to(.96);}
+      function up(){if(!pressed)return;pressed=false;scale.to(1);}
+      drag(button,{start:down,end:up});
+      button.addEventListener('keydown',event=>{if((event.key===' '||event.key==='Enter')&&!event.repeat)down();});
+      button.addEventListener('keyup',event=>{if(event.key===' '||event.key==='Enter')up();});
+      button.addEventListener('blur',up);window.addEventListener('blur',up);
+      button.addEventListener('click',()=>{runs++;$('.run-status').textContent='滑行已开始 · 第 '+runs+' 次出发';});
+    })();
+})();
+</script></body></html>

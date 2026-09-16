@@ -40,8 +40,16 @@ test("create, run, compare, persist, backup and mobile", async ({ page }) => {
     page.getByRole("button", { name: "取消收藏发光悬停按钮", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "打开发光悬停按钮" }).click();
-  await expect(page.locator("iframe")).toHaveCount(0);
-  await page.getByRole("button", { name: "运行", exact: true }).click();
+  await expect(page.locator("iframe")).toHaveCount(1);
+  const previewBounds = await page.locator(".preview-panel").boundingBox();
+  const codeBounds = await page.locator(".code-panel").boundingBox();
+  expect(previewBounds.y).toBeLessThan(200);
+  expect(previewBounds.height).toBeGreaterThan(600);
+  expect(previewBounds.y).toBeLessThan(codeBounds.y);
+  await page.getByRole("button", { name: "放大预览", exact: true }).click();
+  await expect(page.locator(".preview-panel")).toHaveClass(/is-expanded/);
+  await page.getByRole("button", { name: "退出放大预览", exact: true }).click();
+  await expect(page.locator(".preview-panel")).not.toHaveClass(/is-expanded/);
   await page
     .frameLocator("iframe")
     .getByRole("button", { name: "Hover me" })
@@ -92,12 +100,14 @@ test("create, run, compare, persist, backup and mobile", async ({ page }) => {
       '<!doctype html><html><head><title>Preview</title></head><body><button id="click">Before</button></body></html>',
     );
   await page.getByRole("tab", { name: "JavaScript", exact: true }).click();
+  await expect(page.locator(".cm-content")).toHaveText("");
   await page
     .locator(".cm-content")
-    .fill(
+    .pressSequentially(
       'document.querySelector("button").onclick = () => { document.querySelector("button").textContent = "$& after"; };',
     );
   await page.getByRole("button", { name: "运行", exact: true }).click();
+  await expect(page.locator("iframe")).toHaveAttribute("srcdoc", /\$& after/);
   await page
     .frameLocator("iframe")
     .getByRole("button", { name: "Before" })

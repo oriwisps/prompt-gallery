@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>07 物理弹簧交错流 · Motion Lab</title><style>
+:root{font-family:Inter,"Segoe UI","Microsoft YaHei",sans-serif;color:#edf0ed;background:#111817;font-synthesis:none;--orange:#ff931e;--muted:#86938f;--line:#ffffff15;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;min-width:280px;background:radial-gradient(ellipse at 10% 0,#28413b44,transparent 65%),#111817}button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--orange);outline-offset:5px}button{color:inherit}button:disabled{cursor:default;opacity:.55}a{color:inherit}main{max-width:1100px;margin:auto;padding:44px 40px 28px}.heading{display:flex;gap:18px;align-items:center;margin-bottom:32px}.number{background:var(--orange);color:#141b18;font:bold 19px ui-monospace,monospace;padding:10px 12px;border-radius:10px}h1{font-size:clamp(22px,4vw,32px);margin:0 0 7px;letter-spacing:-.6px}.english{color:var(--muted);font:11px ui-monospace,monospace;letter-spacing:3px}.lab{display:grid;grid-template-columns:minmax(0,1fr) 260px;min-height:560px;border:1px solid var(--line);border-radius:24px;background:#0a100e55;overflow:hidden}.demo{min-width:0;min-height:560px;padding:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;gap:22px}.readout{border-left:1px solid var(--line);padding:28px 26px;display:flex;flex-direction:column;gap:24px}.live{font:10px ui-monospace,monospace;letter-spacing:2px;color:var(--muted);display:flex;gap:9px;align-items:center}.live:before{content:"";width:5px;height:5px;border-radius:50%;background:var(--orange)}.metric small{display:block;color:var(--muted);font:10px ui-monospace,monospace;letter-spacing:2px;margin-bottom:7px}.metric output{color:var(--orange);font-size:32px;letter-spacing:-1px;font-weight:550;line-height:1.2;word-break:break-word}.trace{width:100%;height:90px;margin-top:auto;border-bottom:1px solid #ffffff15}.trace path{fill:none;stroke:#bac9c3;stroke-width:1.5}.trace-label{color:#63736c;font:9px ui-monospace,monospace;margin-top:-16px}.instruction{font-size:12px;text-align:center;line-height:1.8;color:#a1b0a9;margin:0}.prompt{padding:23px 4px 0}.prompt h2{font-size:11px;color:var(--orange);margin:0 0 10px;letter-spacing:2px}.prompt p{font-size:14px;line-height:1.9;margin:0;color:#aab7b0}.toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.control{border:1px solid #ffffff25;border-radius:100px;background:#ffffff08;padding:9px 17px;font-size:12px}.control:hover{background:#ffffff12}.control.active{background:var(--orange);color:#141914;border-color:transparent}.primary{border:0;background:var(--orange);color:#152019;font-weight:600;border-radius:100px;padding:13px 22px}.phone{position:relative;width:min(300px,100%);height:510px;border:7px solid #272f2a;border-radius:38px;background:#080d0a;overflow:hidden;box-shadow:0 20px 45px #0004;isolation:isolate}.phone-header{padding:25px 17px 15px}.phone-header h2{font-size:26px;margin:0 0 3px}.phone-header p{font-size:11px;margin:0;color:#81928a}.landscape{width:100%;height:100%;display:block;object-fit:cover}.status{font-size:12px;color:#bbc9c1;min-height:20px;text-align:center}.range-row{display:flex;align-items:center;gap:12px;font-size:12px;color:#95a69e}.range-row input{accent-color:var(--orange);width:130px}button svg{pointer-events:none}
+@media(max-width:720px){main{padding:24px 16px}.heading{margin-bottom:22px;gap:12px}.lab{grid-template-columns:1fr}.demo{padding:24px 16px;min-height:510px}.readout{border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;padding:22px 18px}.live{grid-column:1/-1}.metric output{font-size:23px}.metric small{font-size:8px;letter-spacing:1px}.trace,.trace-label{display:none}.prompt p{font-size:13px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
+
+.cascade-phone{height:540px}.cascade-phone .phone-header{padding-top:20px;padding-bottom:13px}.spots{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 12px 16px;max-height:445px;overflow:auto;scrollbar-width:thin;scrollbar-color:#3d5545 transparent}.spot{position:relative;aspect-ratio:1.35;overflow:hidden;border-radius:12px;transform-origin:50% 100%;background:#587b78}.spot svg{position:absolute;inset:0}.spot span{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,#10281fbb);padding:22px 9px 8px;font-size:9px}.spot small{float:right;font:8px ui-monospace,monospace;color:#d0e1d6}
+</style></head><body>
+<main><header class="heading"><span class="number">07</span><div><h1>物理弹簧交错流</h1><div class="english">STAGGER CASCADE</div></div></header><section class="lab"><div class="demo"><div class="phone cascade-phone"><div class="phone-header"><h2>Spots</h2><p>10 个目的地，10 种心动</p></div><div class="spots"><div class="spot"><svg class="landscape" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="400" height="260" fill="#467b86"/><circle cx="290" cy="60" r="30" fill="#d8eeea" opacity=".65"/><path d="M0 210 90 98 142 146 235 34 400 210V260H0Z" fill="#d8eeea"/><path d="m235 34 20 116 38 24-23 14 69 72h61v-50Z M90 98l20 93 52 69H0V210Z" fill="#809caa"/><path d="m235 34-64 128 35-18 10 23 21-56 18 39Z" fill="#fff" opacity=".7"/><path d="M0 244q94-41 203-17t197-2v35H0" fill="#d8eeea"/><path d="m275 196-53 30 7 9-46 22" stroke="#467b86" stroke-width="2" fill="none" opacity=".4"/></svg><span>Aurora<small>01</small></span></div><div class="spot"><svg class="landscape" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="400" height="260" fill="#916f80"/><circle cx="281" cy="60" r="30" fill="#fae5dd" opacity=".65"/><path d="M0 210 90 98 142 146 235 34 400 210V260H0Z" fill="#fae5dd"/><path d="m235 34 20 116 38 24-23 14 69 72h61v-50Z M90 98l20 93 52 69H0V210Z" fill="#adacbe"/><path d="m235 34-64 128 35-18 10 23 21-56 18 39Z" fill="#fff" opacity=".7"/><path d="M0 244q94-41 203-17t197-2v35H0" fill="#fae5dd"/><path d="m275 196-53 30 7 9-46 22" stroke="#916f80" stroke-width="2" fill="none" opacity=".4"/></svg><span>Nordkette<small>02</small></span></div><div class="spot"><svg class="landscape" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="400" height="260" fill="#567084"/><circle cx="272" cy="60" r="30" fill="#e6f3f5" opacity=".65"/><path d="M0 210 90 98 142 146 235 34 400 210V260H0Z" fill="#e6f3f5"/><path d="m235 34 20 116 38 24-23 14 69 72h61v-50Z M90 98l20 93 52 69H0V210Z" fill="#8da6b8"/><path d="m235 34-64 128 35-18 10 23 21-56 18 39Z" fill="#fff" opacity=".7"/><path d="M0 244q94-41 203-17t197-2v35H0" fill="#e6f3f5"/><path d="m275 196-53 30 7 9-46 22" stroke="#567084" stroke-width="2" fill="none" opacity=".4"/></svg><span>Pine Line<small>03</small></span></div><div class="spot"><svg class="landscape" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="400" height="260" fill="#4c8071"/><circle cx="263" cy="60" r="30" fill="#e4eee4" opacity=".65"/><path d="M0 210 90 98 142 146 235 34 400 210V260H0Z" fill="#e4eee4"/><path d="m235 34 20 116 38 24-23 14 69 72h61v-50Z M90 98l20 93 52 69H0V210Z" fill="#90a69b"/><path d="m235 34-64 128 35-18 10 23 21-56 18 39Z" fill="#fff" opacity=".7"/><path d="M0 244q94-41 203-17t197-2v35H0" fill="#e4eee4"/><path d="m275 196-53 30 7 9-46 22" stroke="#4c8071" stroke-width="2" fill="none" opacity=".4"/></svg><span>Alpine<small>04</small></span></div><div class="spot"><svg class="landscape" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="400" height="260" fill="#467b86"/><circle cx="254" cy="60" r="30" fill="#d8eeea" opacity=".65"/><path d="M0 210 90 98 142 146 235 34 400 210V260H0Z" fill="#d8eeea"/><path d="m235 34 20 116 38 24-23 14 69 72h61v-50Z M90 98l20 93 52 69H0V210Z" fill="#809caa"/><path d="m235 34-64 128 35-18 10 23 21-56 18 39Z" fill="#fff" opacity=".7"/><path d="M0 244q94-41 203-17t197-2v35H0" fill="#d8eeea"/><path d="m275 196-53 30 7 9-46 22" stroke="#467b86" stroke-width="2" fill="none" opacity=".4"/></svg><span>Summit<small>05</small></span></div><div class="spot"><svg class="landscape" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="400" height="260" fill="#916f80"/><circle cx="245" cy="60" r="30" fill="#fae5dd" opacity=".65"/><path d="M0 210 90 98 142 146 235 34 400 210V260H0Z" fill="#fae5dd"/><path d="m235 34 20 116 38 24-23 14 69 72h61v-50Z M90 98l20 93 52 69H0V210Z" fill="#adacbe"/><path d="m235 34-64 128 35-18 10 23 21-56 18 39Z" fill="#fff" opacity=".7"/><path d="M0 244q94-41 203-17t197-2v35H0" fill="#fae5dd"/><path d="m275 196-53 30 7 9-46 22" stroke="#916f80" stroke-width="2" fill="none" opacity=".4"/></svg><span>Frost<small>06</small></span></div><div class="spot"><svg class="landscape" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="400" height="260" fill="#567084"/><circle cx="236" cy="60" r="30" fill="#e6f3f5" opacity=".65"/><path d="M0 210 90 98 142 146 235 34 400 210V260H0Z" fill="#e6f3f5"/><path d="m235 34 20 116 38 24-23 14 69 72h61v-50Z M90 98l20 93 52 69H0V210Z" fill="#8da6b8"/><path d="m235 34-64 128 35-18 10 23 21-56 18 39Z" fill="#fff" opacity=".7"/><path d="M0 244q94-41 203-17t197-2v35H0" fill="#e6f3f5"/><path d="m275 196-53 30 7 9-46 22" stroke="#567084" stroke-width="2" fill="none" opacity=".4"/></svg><span>Ridge<small>07</small></span></div><div class="spot"><svg class="landscape" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="400" height="260" fill="#4c8071"/><circle cx="227" cy="60" r="30" fill="#e4eee4" opacity=".65"/><path d="M0 210 90 98 142 146 235 34 400 210V260H0Z" fill="#e4eee4"/><path d="m235 34 20 116 38 24-23 14 69 72h61v-50Z M90 98l20 93 52 69H0V210Z" fill="#90a69b"/><path d="m235 34-64 128 35-18 10 23 21-56 18 39Z" fill="#fff" opacity=".7"/><path d="M0 244q94-41 203-17t197-2v35H0" fill="#e4eee4"/><path d="m275 196-53 30 7 9-46 22" stroke="#4c8071" stroke-width="2" fill="none" opacity=".4"/></svg><span>Glacier<small>08</small></span></div><div class="spot"><svg class="landscape" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="400" height="260" fill="#467b86"/><circle cx="218" cy="60" r="30" fill="#d8eeea" opacity=".65"/><path d="M0 210 90 98 142 146 235 34 400 210V260H0Z" fill="#d8eeea"/><path d="m235 34 20 116 38 24-23 14 69 72h61v-50Z M90 98l20 93 52 69H0V210Z" fill="#809caa"/><path d="m235 34-64 128 35-18 10 23 21-56 18 39Z" fill="#fff" opacity=".7"/><path d="M0 244q94-41 203-17t197-2v35H0" fill="#d8eeea"/><path d="m275 196-53 30 7 9-46 22" stroke="#467b86" stroke-width="2" fill="none" opacity=".4"/></svg><span>Snowfall<small>09</small></span></div><div class="spot"><svg class="landscape" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="400" height="260" fill="#916f80"/><circle cx="209" cy="60" r="30" fill="#fae5dd" opacity=".65"/><path d="M0 210 90 98 142 146 235 34 400 210V260H0Z" fill="#fae5dd"/><path d="m235 34 20 116 38 24-23 14 69 72h61v-50Z M90 98l20 93 52 69H0V210Z" fill="#adacbe"/><path d="m235 34-64 128 35-18 10 23 21-56 18 39Z" fill="#fff" opacity=".7"/><path d="M0 244q94-41 203-17t197-2v35H0" fill="#fae5dd"/><path d="m275 196-53 30 7 9-46 22" stroke="#916f80" stroke-width="2" fill="none" opacity=".4"/></svg><span>Solstice<small>10</small></span></div></div></div><div class="toolbar"><button class="control replay">重播入场</button><label class="range-row">间隔 <input class="stagger-delay" type="range" min="40" max="180" step="10" value="100" aria-label="交错间隔"></label></div><p class="instruction">点击重播观察十张卡片依次入场 · 调整间隔体验不同节奏</p></div><aside class="readout" aria-label="实时参数"><div class="live">LIVE READOUT</div><div class="metric"><small>STAGGER</small><output data-metric="stagger" aria-live="off">—</output></div><div class="metric"><small>CARDS IN</small><output data-metric="cards" aria-live="off">—</output></div><div class="metric"><small>STATE</small><output data-metric="state" aria-live="off">—</output></div><svg class="trace" viewBox="0 0 220 90" aria-hidden="true"><path/></svg><span class="trace-label">MOTION HISTORY / 动态轨迹</span></aside></section><section class="prompt"><h2>AI 提示词 / 原文提取</h2><p>列表元素入场使用交错动画（Stagger Delay），每个子项带微弱弹性向上滑入（Spring Cascade）。</p></section></main>
+<script>
+(() => {
+// Shared by the exported standalone examples; no network or third-party runtime.
+const $ = selector => document.querySelector(selector);
+const $$ = selector => [...document.querySelectorAll(selector)];
+const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
+const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
+const animations = new Set();
+function spring(initial, render, { stiffness = 260, damping = 25, epsilon = .002 } = {}) {
+  let value = initial, velocity = 0, target = initial, frame = 0, last = 0, done;
+  const api = {
+    get value() { return value; },
+    get velocity() { return velocity; },
+    to(next, onDone) {
+      target = next; done = onDone;
+      if (motionPreference.matches) { api.jump(next); onDone?.(); return; }
+      if (!frame) { last = performance.now(); frame = requestAnimationFrame(tick); }
+    },
+    jump(next) { cancelAnimationFrame(frame); frame = 0; value = target = next; velocity = 0; done = undefined; render(value, velocity); },
+    stop() { cancelAnimationFrame(frame); frame = 0; done = undefined; },
+    finish() { const callback = done; api.jump(target); callback?.(); },
+    destroy() { api.stop(); animations.delete(api); },
+  };
+  function tick(now) {
+    const dt = Math.min((now - last) / 1000, .032); last = now;
+    for (let i = 0; i < 4; i++) {
+      velocity += ((target - value) * stiffness - velocity * damping) * dt / 4;
+      value += velocity * dt / 4;
+    }
+    if (Math.abs(value - target) < epsilon && Math.abs(velocity) < epsilon) {
+      frame = 0; value = target; velocity = 0; render(value, velocity);
+      const callback = done; done = undefined; callback?.();
+    } else { render(value, velocity); frame = requestAnimationFrame(tick); }
+  }
+  animations.add(api); render(value, velocity); return api;
+}
+motionPreference.addEventListener('change', () => {
+  if (motionPreference.matches) [...animations].forEach(animation => animation.finish());
+});
+window.addEventListener('pagehide', () => animations.forEach(animation => animation.stop()));
+function metric(name, value) { const element = document.querySelector('[data-metric="' + name + '"]'); if (element) element.textContent = value; }
+const history = [];
+let traceTime = 0;
+function trace(value) {
+  const now = performance.now();
+  if (now - traceTime < 28) return; traceTime = now;
+  history.push(clamp(value, 0, 1)); if (history.length > 90) history.shift();
+  const path = $('.trace path');
+  if (path) path.setAttribute('d', history.map((point, i) => (i ? 'L' : 'M') + (i * 220 / 89).toFixed(1) + ',' + (80 - point * 65).toFixed(1)).join(' '));
+}
+function drag(element, { start, move, end }) {
+  let pointer = null;
+  element.addEventListener('pointerdown', event => {
+    if (!event.isPrimary || event.button !== 0 || pointer !== null) return;
+    pointer = event.pointerId; element.setPointerCapture(pointer); start?.(event);
+  });
+  element.addEventListener('pointermove', event => { if (event.pointerId === pointer) move?.(event); });
+  function finish(event, cancelled = false) {
+    if (pointer === null || (event && event.pointerId !== pointer)) return;
+    const id = pointer; pointer = null;
+    if (element.hasPointerCapture(id)) element.releasePointerCapture(id);
+    end?.(event, cancelled);
+  }
+  element.addEventListener('pointerup', event => finish(event));
+  element.addEventListener('pointercancel', event => finish(event, true));
+  element.addEventListener('lostpointercapture', event => finish(event, true));
+  window.addEventListener('blur', () => finish(null, true));
+  document.addEventListener('visibilitychange', () => { if (document.hidden) finish(null, true); });
+}
+
+(function(){
+      const cards=$$('.spot');let timers=[],motions=[],generation=0,delay=100;
+      function replay(){
+        generation++;const current=generation;timers.forEach(clearTimeout);timers=[];motions.forEach(animation=>animation.destroy());motions=[];let finished=0;
+        $('.spots').scrollTop=0;metric('cards','0 / 10');metric('stagger',(motionPreference.matches?0:delay/1000).toFixed(2)+' s');metric('state','ENTERING');
+        cards.forEach((card,index)=>{
+          const animation=spring(0,value=>{card.style.opacity=clamp(value,0,1);card.style.transform='translateY('+(1-value)*35+'px) scale('+(1-(1-value)*.035)+')';},{stiffness:300,damping:23});motions.push(animation);
+          function enter(){if(current!==generation)return;animation.to(1,()=>{finished++;metric('cards',finished+' / 10');trace(finished/10);if(finished===10)metric('state','SETTLED');});}
+          if(motionPreference.matches)enter();else timers.push(setTimeout(enter,index*delay));
+        });
+      }
+      $('.replay').addEventListener('click',replay);$('.stagger-delay').addEventListener('input',event=>{delay=Number(event.target.value);metric('stagger',(delay/1000).toFixed(2)+' s');});
+      motionPreference.addEventListener('change',replay);window.addEventListener('pagehide',()=>{timers.forEach(clearTimeout);motions.forEach(animation=>animation.stop());});replay();
+    })();
+})();
+</script></body></html>

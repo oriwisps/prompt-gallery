@@ -814,8 +814,6 @@ nav button.active:before {
   flex-direction: column;
   gap: 16px;
   min-width: 0;
-  position: sticky;
-  top: 18px;
 }
 .code-panel,
 .preview-panel {
@@ -907,6 +905,24 @@ nav button.active:before {
   background: none;
   color: #7b8d96;
 }
+.preview-toolbar button.primary {
+  background: var(--mint, #b5f3cf);
+  color: #17251d;
+  padding: 7px 12px;
+}
+.preview-panel.is-expanded {
+  position: fixed;
+  inset: 16px;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 0 100vmax #080c10d9;
+}
+.preview-panel.is-expanded .preview-stage {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}
 .compare-toolbar {
   display: flex;
   gap: 10px;
@@ -924,7 +940,7 @@ nav button.active:before {
 }
 .preview-stage {
   display: flex;
-  min-height: 320px;
+  height: clamp(480px, calc(100dvh - 260px), 1100px);
   margin: 0 12px;
   border: 1px solid #2b3737;
   border-radius: 6px;
@@ -942,12 +958,13 @@ nav button.active:before {
 }
 .frame {
   width: 100%;
-  min-height: 320px;
+  height: 100%;
+  min-width: 0;
 }
 .phone-frame {
   width: 375px;
   max-width: 100%;
-  min-height: 500px;
+  height: 100%;
   border-left: 1px solid #3a4641;
   border-right: 1px solid #3a4641;
 }
@@ -1194,10 +1211,6 @@ nav button.active:before {
   .editor-layout {
     grid-template-columns: 340px minmax(0, 1fr);
   }
-  .preview-stage,
-  .frame {
-    min-height: 380px;
-  }
 }
 @media (max-width: 1150px) {
   .sidebar {
@@ -1317,6 +1330,7 @@ nav button.active:before {
   }
   .workspace {
     position: static;
+    grid-row: 1;
   }
   .details-panel {
     display: grid;
@@ -1457,6 +1471,8 @@ nav button.active:before {
   }
   .preview-stage.split > div {
     width: 100%;
+    flex: 1;
+    min-height: 0;
   }
   .preview-stage.split > div + div {
     border-left: 0;

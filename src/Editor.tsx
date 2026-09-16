@@ -17,6 +17,8 @@ import {
   Columns2,
   Monitor,
   Smartphone,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import type { Case, Version } from "./types";
 import { buildDocument } from "./preview";
@@ -48,13 +50,20 @@ export default function Editor({
     [running, setRunning] = useState<{
       document: string;
       compare: string;
-    } | null>(null),
+    } | null>(() => ({
+      document: buildDocument(initial.versions.find((version) => version.id === initial.bestVersionId)!),
+      compare: "",
+    })),
+    [expanded, setExpanded] = useState(false),
     [compare, setCompare] = useState(""),
     [mobile, setMobile] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const v = item.versions.find((v) => v.id === versionId)!,
     dirty = JSON.stringify(item) !== saved || tagInput !== item.tags.join("，");
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   useEffect(() => {
     onDirty(dirty);
     const unload = (e: BeforeUnloadEvent) => {
@@ -63,6 +72,19 @@ export default function Editor({
     window.addEventListener("beforeunload", unload);
     return () => window.removeEventListener("beforeunload", unload);
   }, [dirty, onDirty]);
+  useEffect(() => {
+    if (!expanded) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setExpanded(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [expanded]);
   const update = (patch: Partial<Case>) => setItem((c) => ({ ...c, ...patch }));
   const updateVersion = (patch: Partial<Version>) =>
     setItem((c) => ({
@@ -194,7 +216,7 @@ export default function Editor({
                 };
                 update({ versions: [...item.versions, next] });
                 setVersionId(next.id);
-                setRunning(null);
+                setRunning({ document: buildDocument(next), compare: "" });
                 setCompare("");
               }}
               disabled={item.versions.length >= 100}
@@ -208,7 +230,7 @@ export default function Editor({
             value={versionId}
             onChange={(e) => {
               setVersionId(e.target.value);
-              setRunning(null);
+              setRunning({ document: buildDocument(item.versions.find((version) => version.id === e.target.value)!), compare: "" });
               setCompare("");
             }}
           >
@@ -241,7 +263,7 @@ export default function Editor({
                           : item.bestVersionId,
                     });
                     setVersionId(rest[0].id);
-                    setRunning(null);
+                    setRunning({ document: buildDocument(rest[0]), compare: "" });
                     setCompare("");
                   }
                 }}
@@ -396,62 +418,33 @@ export default function Editor({
           )}
         </div>
         <div className="workspace">
-          <div className="code-panel">
-            <div className="code-toolbar">
-              <div className="code-tabs" role="tablist">
-                {(["html", "css", "js"] as const).map((t) => (
-                  <button
-                    role="tab"
-                    aria-selected={tab === t}
-                    className={tab === t ? "active" : ""}
-                    key={t}
-                    onClick={() => setTab(t)}
-                  >
-                    {t === "js" ? "JavaScript" : t.toUpperCase()}
-                  </button>
-                ))}
-              </div>
-              <button aria-label="复制当前代码" onClick={() => copy(v[tab])}>
-                <Copy size={15} />
-              </button>
-              <button
-                className="primary"
-                onClick={() => {
-                  setRunning({
-                    document: buildDocument(v),
-                    compare: compare
-                      ? buildDocument(
-                          item.versions.find((x) => x.id === compare)!,
-                        )
-                      : "",
-                  });
-                }}
-              >
-                <Play size={14} />
-                运行
-              </button>
-            </div>
-            <CodeMirror
-              aria-label={tab + "代码编辑器"}
-              value={v[tab]}
-              height="340px"
-              theme="dark"
-              extensions={[
-                tab === "html" ? html() : tab === "css" ? css() : javascript(),
-              ]}
-              onChange={(value) => updateVersion({ [tab]: value })}
-            />
-            <div className="code-footnote">
-              {tab === "html"
-                ? "支持 HTML 片段或完整 HTML 文档"
-                : "修改后点击运行，预览才会更新"}
-              <span>{v[tab].split("\n").length} 行</span>
-            </div>
-          </div>
-          <div className="preview-panel">
+          <div className={"preview-panel" + (expanded ? " is-expanded" : "")}>
             <div className="preview-toolbar">
               <span>效果预览</span>
               <div>
+                <button
+                  className="primary"
+                  onClick={() => {
+                    setRunning({
+                      document: buildDocument(v),
+                      compare: compare
+                        ? buildDocument(
+                            item.versions.find((x) => x.id === compare)!,
+                          )
+                        : "",
+                    });
+                  }}
+                >
+                  <Play size={14} />
+                  运行
+                </button>
+                <button
+                  aria-label={expanded ? "退出放大预览" : "放大预览"}
+                  aria-pressed={expanded}
+                  onClick={() => setExpanded(!expanded)}
+                >
+                  {expanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                </button>
                 <button
                   className={!mobile ? "mint" : ""}
                   aria-label="桌面预览"
@@ -531,6 +524,42 @@ export default function Editor({
             <div className="preview-note">
               <span className="status-dot" />
               隔离运行 · 支持 HTTPS 外部资源
+            </div>
+          </div>
+          <div className="code-panel">
+            <div className="code-toolbar">
+              <div className="code-tabs" role="tablist">
+                {(["html", "css", "js"] as const).map((t) => (
+                  <button
+                    role="tab"
+                    aria-selected={tab === t}
+                    className={tab === t ? "active" : ""}
+                    key={t}
+                    onClick={() => setTab(t)}
+                  >
+                    {t === "js" ? "JavaScript" : t.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+              <button aria-label="复制当前代码" onClick={() => copy(v[tab])}>
+                <Copy size={15} />
+              </button>
+            </div>
+            <CodeMirror
+              aria-label={tab + "代码编辑器"}
+              value={v[tab]}
+              height="340px"
+              theme="dark"
+              extensions={[
+                tab === "html" ? html() : tab === "css" ? css() : javascript(),
+              ]}
+              onChange={(value) => updateVersion({ [tab]: value })}
+            />
+            <div className="code-footnote">
+              {tab === "html"
+                ? "支持 HTML 片段或完整 HTML 文档"
+                : "修改后点击运行，预览才会更新"}
+              <span>{v[tab].split("\n").length} 行</span>
             </div>
           </div>
         </div>

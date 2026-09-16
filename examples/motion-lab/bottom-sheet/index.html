@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>05 阻尼弹性抽屉 · Motion Lab</title><style>
+:root{font-family:Inter,"Segoe UI","Microsoft YaHei",sans-serif;color:#edf0ed;background:#111817;font-synthesis:none;--orange:#ff931e;--muted:#86938f;--line:#ffffff15;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;min-width:280px;background:radial-gradient(ellipse at 10% 0,#28413b44,transparent 65%),#111817}button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--orange);outline-offset:5px}button{color:inherit}button:disabled{cursor:default;opacity:.55}a{color:inherit}main{max-width:1100px;margin:auto;padding:44px 40px 28px}.heading{display:flex;gap:18px;align-items:center;margin-bottom:32px}.number{background:var(--orange);color:#141b18;font:bold 19px ui-monospace,monospace;padding:10px 12px;border-radius:10px}h1{font-size:clamp(22px,4vw,32px);margin:0 0 7px;letter-spacing:-.6px}.english{color:var(--muted);font:11px ui-monospace,monospace;letter-spacing:3px}.lab{display:grid;grid-template-columns:minmax(0,1fr) 260px;min-height:560px;border:1px solid var(--line);border-radius:24px;background:#0a100e55;overflow:hidden}.demo{min-width:0;min-height:560px;padding:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;gap:22px}.readout{border-left:1px solid var(--line);padding:28px 26px;display:flex;flex-direction:column;gap:24px}.live{font:10px ui-monospace,monospace;letter-spacing:2px;color:var(--muted);display:flex;gap:9px;align-items:center}.live:before{content:"";width:5px;height:5px;border-radius:50%;background:var(--orange)}.metric small{display:block;color:var(--muted);font:10px ui-monospace,monospace;letter-spacing:2px;margin-bottom:7px}.metric output{color:var(--orange);font-size:32px;letter-spacing:-1px;font-weight:550;line-height:1.2;word-break:break-word}.trace{width:100%;height:90px;margin-top:auto;border-bottom:1px solid #ffffff15}.trace path{fill:none;stroke:#bac9c3;stroke-width:1.5}.trace-label{color:#63736c;font:9px ui-monospace,monospace;margin-top:-16px}.instruction{font-size:12px;text-align:center;line-height:1.8;color:#a1b0a9;margin:0}.prompt{padding:23px 4px 0}.prompt h2{font-size:11px;color:var(--orange);margin:0 0 10px;letter-spacing:2px}.prompt p{font-size:14px;line-height:1.9;margin:0;color:#aab7b0}.toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.control{border:1px solid #ffffff25;border-radius:100px;background:#ffffff08;padding:9px 17px;font-size:12px}.control:hover{background:#ffffff12}.control.active{background:var(--orange);color:#141914;border-color:transparent}.primary{border:0;background:var(--orange);color:#152019;font-weight:600;border-radius:100px;padding:13px 22px}.phone{position:relative;width:min(300px,100%);height:510px;border:7px solid #272f2a;border-radius:38px;background:#080d0a;overflow:hidden;box-shadow:0 20px 45px #0004;isolation:isolate}.phone-header{padding:25px 17px 15px}.phone-header h2{font-size:26px;margin:0 0 3px}.phone-header p{font-size:11px;margin:0;color:#81928a}.landscape{width:100%;height:100%;display:block;object-fit:cover}.status{font-size:12px;color:#bbc9c1;min-height:20px;text-align:center}.range-row{display:flex;align-items:center;gap:12px;font-size:12px;color:#95a69e}.range-row input{accent-color:var(--orange);width:130px}button svg{pointer-events:none}
+@media(max-width:720px){main{padding:24px 16px}.heading{margin-bottom:22px;gap:12px}.lab{grid-template-columns:1fr}.demo{padding:24px 16px;min-height:510px}.readout{border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;padding:22px 18px}.live{grid-column:1/-1}.metric output{font-size:23px}.metric small{font-size:8px;letter-spacing:1px}.trace,.trace-label{display:none}.prompt p{font-size:13px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
+
+.sheet-background{padding:30px 20px;position:absolute;inset:0}.sheet-background h2{font-size:42px;line-height:.9;margin:0 0 18px}.sheet-background p{font-size:11px;color:#829a8b}.sheet-background svg{height:200px;border-radius:20px;margin-top:20px}.sheet-background>span{font:10px ui-monospace,monospace;letter-spacing:3px;color:var(--orange);display:block;margin-top:22px}.shade{position:absolute;inset:0;background:#000;opacity:.25;pointer-events:none}.sheet{position:absolute;top:0;left:0;right:0;height:500px;border-radius:26px 26px 0 0;background:#f1f2ed;color:#18231a;box-shadow:0 -10px 35px #0003;will-change:transform}.sheet-handle{height:82px;touch-action:none;cursor:ns-resize;display:flex;flex-direction:column;align-items:center;padding:10px 16px 0;gap:16px}.sheet-handle i{width:36px;height:4px;border-radius:4px;background:#a7ada3}.sheet-handle span{font-size:21px;font-weight:600;align-self:flex-start}.sheet-body{padding:0 18px 20px;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;color-scheme:light}.sheet-body small,.sheet-body label{font:9px ui-monospace,monospace;letter-spacing:1px;color:#718071;display:block}.lengths{display:flex;gap:8px;justify-content:space-between;margin:20px 0 28px}.length{width:44px;height:44px;border:1px solid #c8d1c6;border-radius:50%;background:transparent;color:#4d604c;font-size:12px}.length.selected{background:var(--orange);color:#152312;border-color:var(--orange);font-weight:700}.angle-input{display:block;width:100%;accent-color:#ff931e;margin:20px 0 6px}.angle-value{font-size:12px;margin:5px 0 18px;text-align:right}.save{width:100%;background:#16241a;color:#f6fff6;border:0;border-radius:100px;padding:13px;font-size:12px}.save-status{font-size:11px;text-align:center;color:#4a6c49;line-height:1.6}
+</style></head><body>
+<main><header class="heading"><span class="number">05</span><div><h1>阻尼弹性抽屉</h1><div class="english">BOTTOM SHEET</div></div></header><section class="lab"><div class="demo"><div class="phone sheet-phone"><div class="sheet-background"><h2>My<br>Board</h2><p>为下一次出发做好准备。</p><svg class="landscape" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="400" height="260" fill="#4c8071"/><circle cx="263" cy="60" r="30" fill="#e4eee4" opacity=".65"/><path d="M0 210 90 98 142 146 235 34 400 210V260H0Z" fill="#e4eee4"/><path d="m235 34 20 116 38 24-23 14 69 72h61v-50Z M90 98l20 93 52 69H0V210Z" fill="#90a69b"/><path d="m235 34-64 128 35-18 10 23 21-56 18 39Z" fill="#fff" opacity=".7"/><path d="M0 244q94-41 203-17t197-2v35H0" fill="#e4eee4"/><path d="m275 196-53 30 7 9-46 22" stroke="#4c8071" stroke-width="2" fill="none" opacity=".4"/></svg><span>CARVE / 156</span></div><div class="shade"></div><section class="sheet" aria-label="滑雪板配置"><div class="sheet-handle" role="slider" tabindex="0" aria-label="抽屉展开程度" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1"><i></i><span>Choose Your Setup</span></div><div class="sheet-body"><small>BOARD LENGTH / 板长</small><div class="lengths"><button class="length" aria-pressed="false">148</button><button class="length" aria-pressed="false">152</button><button class="length selected" aria-pressed="true">156</button><button class="length" aria-pressed="false">160</button></div><label>STANCE ANGLE / 站姿角度<input class="angle-input" type="range" min="0" max="30" value="18" aria-label="站姿角度"></label><p class="angle-value">18°</p><button class="save">保存配置</button><p class="save-status" aria-live="polite"></p></div></section></div><div class="toolbar sheet-controls"><button class="control" data-anchor="2">低位</button><button class="control active" data-anchor="1">半屏</button><button class="control" data-anchor="0">全屏</button></div><p class="instruction">拖动抽屉顶部 · 快速甩动跨越锚点 · 超出边界会有橡皮筋阻力</p></div><aside class="readout" aria-label="实时参数"><div class="live">LIVE READOUT</div><div class="metric"><small>SHEET Y</small><output data-metric="position" aria-live="off">—</output></div><div class="metric"><small>STRETCH</small><output data-metric="stretch" aria-live="off">—</output></div><div class="metric"><small>VELOCITY</small><output data-metric="velocity" aria-live="off">—</output></div><svg class="trace" viewBox="0 0 220 90" aria-hidden="true"><path/></svg><span class="trace-label">MOTION HISTORY / 动态轨迹</span></aside></section><section class="prompt"><h2>AI 提示词 / 原文提取</h2><p>实现支持阻尼橡皮筋回弹的底部抽屉（Bottom Sheet），松手根据手势滑动速度（Velocity）自动计算吸附锚点。</p></section></main>
+<script>
+(() => {
+// Shared by the exported standalone examples; no network or third-party runtime.
+const $ = selector => document.querySelector(selector);
+const $$ = selector => [...document.querySelectorAll(selector)];
+const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
+const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
+const animations = new Set();
+function spring(initial, render, { stiffness = 260, damping = 25, epsilon = .002 } = {}) {
+  let value = initial, velocity = 0, target = initial, frame = 0, last = 0, done;
+  const api = {
+    get value() { return value; },
+    get velocity() { return velocity; },
+    to(next, onDone) {
+      target = next; done = onDone;
+      if (motionPreference.matches) { api.jump(next); onDone?.(); return; }
+      if (!frame) { last = performance.now(); frame = requestAnimationFrame(tick); }
+    },
+    jump(next) { cancelAnimationFrame(frame); frame = 0; value = target = next; velocity = 0; done = undefined; render(value, velocity); },
+    stop() { cancelAnimationFrame(frame); frame = 0; done = undefined; },
+    finish() { const callback = done; api.jump(target); callback?.(); },
+    destroy() { api.stop(); animations.delete(api); },
+  };
+  function tick(now) {
+    const dt = Math.min((now - last) / 1000, .032); last = now;
+    for (let i = 0; i < 4; i++) {
+      velocity += ((target - value) * stiffness - velocity * damping) * dt / 4;
+      value += velocity * dt / 4;
+    }
+    if (Math.abs(value - target) < epsilon && Math.abs(velocity) < epsilon) {
+      frame = 0; value = target; velocity = 0; render(value, velocity);
+      const callback = done; done = undefined; callback?.();
+    } else { render(value, velocity); frame = requestAnimationFrame(tick); }
+  }
+  animations.add(api); render(value, velocity); return api;
+}
+motionPreference.addEventListener('change', () => {
+  if (motionPreference.matches) [...animations].forEach(animation => animation.finish());
+});
+window.addEventListener('pagehide', () => animations.forEach(animation => animation.stop()));
+function metric(name, value) { const element = document.querySelector('[data-metric="' + name + '"]'); if (element) element.textContent = value; }
+const history = [];
+let traceTime = 0;
+function trace(value) {
+  const now = performance.now();
+  if (now - traceTime < 28) return; traceTime = now;
+  history.push(clamp(value, 0, 1)); if (history.length > 90) history.shift();
+  const path = $('.trace path');
+  if (path) path.setAttribute('d', history.map((point, i) => (i ? 'L' : 'M') + (i * 220 / 89).toFixed(1) + ',' + (80 - point * 65).toFixed(1)).join(' '));
+}
+function drag(element, { start, move, end }) {
+  let pointer = null;
+  element.addEventListener('pointerdown', event => {
+    if (!event.isPrimary || event.button !== 0 || pointer !== null) return;
+    pointer = event.pointerId; element.setPointerCapture(pointer); start?.(event);
+  });
+  element.addEventListener('pointermove', event => { if (event.pointerId === pointer) move?.(event); });
+  function finish(event, cancelled = false) {
+    if (pointer === null || (event && event.pointerId !== pointer)) return;
+    const id = pointer; pointer = null;
+    if (element.hasPointerCapture(id)) element.releasePointerCapture(id);
+    end?.(event, cancelled);
+  }
+  element.addEventListener('pointerup', event => finish(event));
+  element.addEventListener('pointercancel', event => finish(event, true));
+  element.addEventListener('lostpointercapture', event => finish(event, true));
+  window.addEventListener('blur', () => finish(null, true));
+  document.addEventListener('visibilitychange', () => { if (document.hidden) finish(null, true); });
+}
+
+(function(){
+      const anchors=[65,230,386],sheet=$('.sheet'),handle=$('.sheet-handle');let startY=0,startPosition=0,lastY=0,lastTime=0,velocity=0,anchor=1;
+      const movement=spring(230,(value,v)=>{sheet.style.transform='translateY('+value+'px)';$('.sheet-body').style.maxHeight=Math.max(0,$('.sheet-phone').clientHeight-value-82)+'px';$('.shade').style.opacity=String(clamp((400-value)/450,0,.7));metric('position',Math.round(value)+' px');metric('stretch',Math.round(Math.max(65-value,value-386,0))+' px');metric('velocity',Math.round(v)+' px/s');trace(1-value/440);},{stiffness:310,damping:27,epsilon:.025});
+      function snap(index){anchor=index;movement.to(anchors[index]);handle.setAttribute('aria-valuenow',2-index);handle.setAttribute('aria-valuetext',['全屏','半屏','低位'][index]);$$('[data-anchor]').forEach(button=>button.classList.toggle('active',Number(button.dataset.anchor)===index));}
+      drag(handle,{
+        start:event=>{movement.stop();startY=lastY=event.clientY;startPosition=movement.value;lastTime=performance.now();velocity=0;},
+        move:event=>{const now=performance.now(),dt=Math.max(now-lastTime,1);velocity=.65*velocity+.35*(event.clientY-lastY)/dt*1000;lastY=event.clientY;lastTime=now;let value=startPosition+event.clientY-startY;if(value<65)value=65-(65-value)*.25;if(value>386)value=386+(value-386)*.25;movement.jump(value);metric('velocity',Math.round(velocity)+' px/s');},
+        end:(event,cancelled)=>{if(cancelled||performance.now()-lastTime>100)velocity=0;const projected=movement.value+clamp(velocity,-2200,2200)*.18;const index=anchors.reduce((best,value,i)=>Math.abs(value-projected)<Math.abs(anchors[best]-projected)?i:best,0);snap(index);}
+      });
+      $$('[data-anchor]').forEach(button=>button.addEventListener('click',()=>snap(Number(button.dataset.anchor))));
+      handle.addEventListener('keydown',event=>{if(!['ArrowUp','ArrowDown','Home','End'].includes(event.key))return;event.preventDefault();snap(event.key==='Home'?0:event.key==='End'?2:clamp(anchor+(event.key==='ArrowUp'?-1:1),0,2));});
+      $$('.length').forEach(button=>button.addEventListener('click',()=>{$$('.length').forEach(other=>{other.classList.toggle('selected',other===button);other.setAttribute('aria-pressed',String(other===button));});}));
+      $('.angle-input').addEventListener('input',event=>$('.angle-value').textContent=event.target.value+'°');
+      $('.save').addEventListener('click',()=>{$('.save-status').textContent='本次配置已保存：'+$('.length.selected').textContent+' cm / '+$('.angle-input').value+'°';});snap(1);
+    })();
+})();
+</script></body></html>

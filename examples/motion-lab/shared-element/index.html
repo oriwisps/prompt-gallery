@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>03 共享元素无缝展开 · Motion Lab</title><style>
+:root{font-family:Inter,"Segoe UI","Microsoft YaHei",sans-serif;color:#edf0ed;background:#111817;font-synthesis:none;--orange:#ff931e;--muted:#86938f;--line:#ffffff15;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;min-width:280px;background:radial-gradient(ellipse at 10% 0,#28413b44,transparent 65%),#111817}button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--orange);outline-offset:5px}button{color:inherit}button:disabled{cursor:default;opacity:.55}a{color:inherit}main{max-width:1100px;margin:auto;padding:44px 40px 28px}.heading{display:flex;gap:18px;align-items:center;margin-bottom:32px}.number{background:var(--orange);color:#141b18;font:bold 19px ui-monospace,monospace;padding:10px 12px;border-radius:10px}h1{font-size:clamp(22px,4vw,32px);margin:0 0 7px;letter-spacing:-.6px}.english{color:var(--muted);font:11px ui-monospace,monospace;letter-spacing:3px}.lab{display:grid;grid-template-columns:minmax(0,1fr) 260px;min-height:560px;border:1px solid var(--line);border-radius:24px;background:#0a100e55;overflow:hidden}.demo{min-width:0;min-height:560px;padding:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;gap:22px}.readout{border-left:1px solid var(--line);padding:28px 26px;display:flex;flex-direction:column;gap:24px}.live{font:10px ui-monospace,monospace;letter-spacing:2px;color:var(--muted);display:flex;gap:9px;align-items:center}.live:before{content:"";width:5px;height:5px;border-radius:50%;background:var(--orange)}.metric small{display:block;color:var(--muted);font:10px ui-monospace,monospace;letter-spacing:2px;margin-bottom:7px}.metric output{color:var(--orange);font-size:32px;letter-spacing:-1px;font-weight:550;line-height:1.2;word-break:break-word}.trace{width:100%;height:90px;margin-top:auto;border-bottom:1px solid #ffffff15}.trace path{fill:none;stroke:#bac9c3;stroke-width:1.5}.trace-label{color:#63736c;font:9px ui-monospace,monospace;margin-top:-16px}.instruction{font-size:12px;text-align:center;line-height:1.8;color:#a1b0a9;margin:0}.prompt{padding:23px 4px 0}.prompt h2{font-size:11px;color:var(--orange);margin:0 0 10px;letter-spacing:2px}.prompt p{font-size:14px;line-height:1.9;margin:0;color:#aab7b0}.toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.control{border:1px solid #ffffff25;border-radius:100px;background:#ffffff08;padding:9px 17px;font-size:12px}.control:hover{background:#ffffff12}.control.active{background:var(--orange);color:#141914;border-color:transparent}.primary{border:0;background:var(--orange);color:#152019;font-weight:600;border-radius:100px;padding:13px 22px}.phone{position:relative;width:min(300px,100%);height:510px;border:7px solid #272f2a;border-radius:38px;background:#080d0a;overflow:hidden;box-shadow:0 20px 45px #0004;isolation:isolate}.phone-header{padding:25px 17px 15px}.phone-header h2{font-size:26px;margin:0 0 3px}.phone-header p{font-size:11px;margin:0;color:#81928a}.landscape{width:100%;height:100%;display:block;object-fit:cover}.status{font-size:12px;color:#bbc9c1;min-height:20px;text-align:center}.range-row{display:flex;align-items:center;gap:12px;font-size:12px;color:#95a69e}.range-row input{accent-color:var(--orange);width:130px}button svg{pointer-events:none}
+@media(max-width:720px){main{padding:24px 16px}.heading{margin-bottom:22px;gap:12px}.lab{grid-template-columns:1fr}.demo{padding:24px 16px;min-height:510px}.readout{border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;padding:22px 18px}.live{grid-column:1/-1}.metric output{font-size:23px}.metric small{font-size:8px;letter-spacing:1px}.trace,.trace-label{display:none}.prompt p{font-size:13px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
+
+.trail-list{height:100%;transform-origin:50% 50%}.trail-slot{height:112px;margin:0 12px 12px}.trail{position:relative;width:100%;height:100%;padding:0;border:0;border-radius:17px;overflow:hidden;background:#496d70;display:block;text-align:left;transform-origin:0 0}.trail span{position:absolute;bottom:10px;left:10px;right:10px;border-radius:8px;background:#091912a6;padding:7px 10px;font-size:11px;color:white}.trail span small{float:right}.trail-detail{position:absolute;inset:0;background:linear-gradient(transparent 244px,#15231c 244px);z-index:5;pointer-events:none}.back{position:absolute;top:14px;left:13px;z-index:6;background:#0b160cca;min-height:36px;pointer-events:auto}.detail-copy{position:absolute;top:265px;left:20px;right:20px;pointer-events:auto}.detail-copy>small{color:var(--orange);font-size:9px;letter-spacing:2px}.detail-copy h3{font-size:25px;margin:10px 0}.detail-copy p{font-size:12px;line-height:1.7;color:#adbdaf}.detail-copy div{font-size:12px;margin:15px 0}.detail-copy div span{font-size:9px;color:#899e8e}.detail-copy .primary{font-size:12px;padding:10px 20px}.detail-copy .status{font-size:10px;text-align:left;margin-top:8px}.trail.shared-active{position:absolute;z-index:4;margin:0;opacity:1}.trail.shared-active span{opacity:0}.shared-phone .trail-detail[hidden]{display:none}
+</style></head><body>
+<main><header class="heading"><span class="number">03</span><div><h1>共享元素无缝展开</h1><div class="english">SHARED ELEMENT</div></div></header><section class="lab"><div class="demo"><div class="phone shared-phone"><div class="trail-list"><div class="phone-header"><h2>Trails</h2><p>3 条雪道，等你探索</p></div><div class="trail-slot"><button class="trail" data-index="0" aria-label="探索 Aurora Bowl" aria-expanded="false"><svg class="landscape" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="400" height="260" fill="#467b86"/><circle cx="290" cy="60" r="30" fill="#d8eeea" opacity=".65"/><path d="M0 210 90 98 142 146 235 34 400 210V260H0Z" fill="#d8eeea"/><path d="m235 34 20 116 38 24-23 14 69 72h61v-50Z M90 98l20 93 52 69H0V210Z" fill="#809caa"/><path d="m235 34-64 128 35-18 10 23 21-56 18 39Z" fill="#fff" opacity=".7"/><path d="M0 244q94-41 203-17t197-2v35H0" fill="#d8eeea"/><path d="m275 196-53 30 7 9-46 22" stroke="#467b86" stroke-width="2" fill="none" opacity=".4"/></svg><span>Aurora Bowl <small>↗</small></span></button></div><div class="trail-slot"><button class="trail" data-index="1" aria-label="探索 Nordkette Ridge" aria-expanded="false"><svg class="landscape" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="400" height="260" fill="#916f80"/><circle cx="281" cy="60" r="30" fill="#fae5dd" opacity=".65"/><path d="M0 210 90 98 142 146 235 34 400 210V260H0Z" fill="#fae5dd"/><path d="m235 34 20 116 38 24-23 14 69 72h61v-50Z M90 98l20 93 52 69H0V210Z" fill="#adacbe"/><path d="m235 34-64 128 35-18 10 23 21-56 18 39Z" fill="#fff" opacity=".7"/><path d="M0 244q94-41 203-17t197-2v35H0" fill="#fae5dd"/><path d="m275 196-53 30 7 9-46 22" stroke="#916f80" stroke-width="2" fill="none" opacity=".4"/></svg><span>Nordkette Ridge <small>↗</small></span></button></div><div class="trail-slot"><button class="trail" data-index="2" aria-label="探索 Pine Line" aria-expanded="false"><svg class="landscape" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="400" height="260" fill="#567084"/><circle cx="272" cy="60" r="30" fill="#e6f3f5" opacity=".65"/><path d="M0 210 90 98 142 146 235 34 400 210V260H0Z" fill="#e6f3f5"/><path d="m235 34 20 116 38 24-23 14 69 72h61v-50Z M90 98l20 93 52 69H0V210Z" fill="#8da6b8"/><path d="m235 34-64 128 35-18 10 23 21-56 18 39Z" fill="#fff" opacity=".7"/><path d="M0 244q94-41 203-17t197-2v35H0" fill="#e6f3f5"/><path d="m275 196-53 30 7 9-46 22" stroke="#567084" stroke-width="2" fill="none" opacity=".4"/></svg><span>Pine Line <small>↗</small></span></button></div></div><section class="trail-detail" role="dialog" aria-modal="true" aria-label="雪道详情" hidden><button class="back control">← 返回雪道</button><div class="detail-copy"><small>你的下一段旅程</small><h3></h3><p>沿山脊滑行，穿过松林，<br>在雪线之上寻找自由。</p><div>2,326 m <span>海拔</span>　 /　 3.8 km <span>长度</span></div><button class="primary choose">收藏这条雪道</button><p class="status" aria-live="polite"></p></div></section></div><p class="instruction">点击任意雪道卡片展开 · 返回时同一张卡片连续归位</p></div><aside class="readout" aria-label="实时参数"><div class="live">LIVE READOUT</div><div class="metric"><small>SCALE</small><output data-metric="scale" aria-live="off">—</output></div><div class="metric"><small>CROP W × H</small><output data-metric="crop" aria-live="off">—</output></div><div class="metric"><small>STAGE</small><output data-metric="stage" aria-live="off">—</output></div><svg class="trace" viewBox="0 0 220 90" aria-hidden="true"><path/></svg><span class="trace-label">MOTION HISTORY / 动态轨迹</span></aside></section><section class="prompt"><h2>AI 提示词 / 原文提取</h2><p>实现Card到详情页的共享元素转场（Shared Element Transition），背景与Card容器做连续平滑缩放。</p></section></main>
+<script>
+(() => {
+// Shared by the exported standalone examples; no network or third-party runtime.
+const $ = selector => document.querySelector(selector);
+const $$ = selector => [...document.querySelectorAll(selector)];
+const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
+const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
+const animations = new Set();
+function spring(initial, render, { stiffness = 260, damping = 25, epsilon = .002 } = {}) {
+  let value = initial, velocity = 0, target = initial, frame = 0, last = 0, done;
+  const api = {
+    get value() { return value; },
+    get velocity() { return velocity; },
+    to(next, onDone) {
+      target = next; done = onDone;
+      if (motionPreference.matches) { api.jump(next); onDone?.(); return; }
+      if (!frame) { last = performance.now(); frame = requestAnimationFrame(tick); }
+    },
+    jump(next) { cancelAnimationFrame(frame); frame = 0; value = target = next; velocity = 0; done = undefined; render(value, velocity); },
+    stop() { cancelAnimationFrame(frame); frame = 0; done = undefined; },
+    finish() { const callback = done; api.jump(target); callback?.(); },
+    destroy() { api.stop(); animations.delete(api); },
+  };
+  function tick(now) {
+    const dt = Math.min((now - last) / 1000, .032); last = now;
+    for (let i = 0; i < 4; i++) {
+      velocity += ((target - value) * stiffness - velocity * damping) * dt / 4;
+      value += velocity * dt / 4;
+    }
+    if (Math.abs(value - target) < epsilon && Math.abs(velocity) < epsilon) {
+      frame = 0; value = target; velocity = 0; render(value, velocity);
+      const callback = done; done = undefined; callback?.();
+    } else { render(value, velocity); frame = requestAnimationFrame(tick); }
+  }
+  animations.add(api); render(value, velocity); return api;
+}
+motionPreference.addEventListener('change', () => {
+  if (motionPreference.matches) [...animations].forEach(animation => animation.finish());
+});
+window.addEventListener('pagehide', () => animations.forEach(animation => animation.stop()));
+function metric(name, value) { const element = document.querySelector('[data-metric="' + name + '"]'); if (element) element.textContent = value; }
+const history = [];
+let traceTime = 0;
+function trace(value) {
+  const now = performance.now();
+  if (now - traceTime < 28) return; traceTime = now;
+  history.push(clamp(value, 0, 1)); if (history.length > 90) history.shift();
+  const path = $('.trace path');
+  if (path) path.setAttribute('d', history.map((point, i) => (i ? 'L' : 'M') + (i * 220 / 89).toFixed(1) + ',' + (80 - point * 65).toFixed(1)).join(' '));
+}
+function drag(element, { start, move, end }) {
+  let pointer = null;
+  element.addEventListener('pointerdown', event => {
+    if (!event.isPrimary || event.button !== 0 || pointer !== null) return;
+    pointer = event.pointerId; element.setPointerCapture(pointer); start?.(event);
+  });
+  element.addEventListener('pointermove', event => { if (event.pointerId === pointer) move?.(event); });
+  function finish(event, cancelled = false) {
+    if (pointer === null || (event && event.pointerId !== pointer)) return;
+    const id = pointer; pointer = null;
+    if (element.hasPointerCapture(id)) element.releasePointerCapture(id);
+    end?.(event, cancelled);
+  }
+  element.addEventListener('pointerup', event => finish(event));
+  element.addEventListener('pointercancel', event => finish(event, true));
+  element.addEventListener('lostpointercapture', event => finish(event, true));
+  window.addEventListener('blur', () => finish(null, true));
+  document.addEventListener('visibilitychange', () => { if (document.hidden) finish(null, true); });
+}
+
+(function(){
+      const phone=$('.shared-phone'),list=$('.trail-list'),detail=$('.trail-detail');
+      let active=null,slot=null,origin=null,progress=0,returning=false,animation=null;
+      const saved=new Set();
+      function render(value){
+        progress=value;if(!active)return;
+        const w=phone.clientWidth,h=244;
+        active.style.left=origin.x*(1-value)+'px';active.style.top=origin.y*(1-value)+'px';
+        active.style.width=origin.width+(w-origin.width)*value+'px';active.style.height=origin.height+(h-origin.height)*value+'px';
+        active.style.borderRadius=17*(1-value)+'px';
+        list.style.transform='scale('+(1-.055*value)+')';list.style.opacity=String(1-value*.7);
+        detail.style.opacity=String(value);$('.detail-copy').style.transform='translateY('+(1-value)*24+'px)';
+        metric('scale','×'+(1+(w/origin.width-1)*value).toFixed(2));metric('crop',Math.round(origin.width+(w-origin.width)*value)+' × '+Math.round(origin.height+(h-origin.height)*value));trace(value);
+      }
+      function close(){
+        if(!active||returning)return;returning=true;detail.inert=true;metric('stage','RETURN');
+        animation.to(0,()=>{
+          const card=active;slot.append(card);card.classList.remove('shared-active');card.style.cssText='';card.disabled=false;card.setAttribute('aria-expanded','false');
+          detail.hidden=true;detail.inert=false;list.inert=false;list.style.cssText='';active=null;returning=false;animation.destroy();card.focus({preventScroll:true});metric('stage','LIST');
+        });
+      }
+      $$('.trail').forEach(card=>card.addEventListener('click',()=>{
+        if(active)return;active=card;slot=card.parentElement;
+        const r=slot.getBoundingClientRect(),p=phone.getBoundingClientRect();
+        origin={x:r.left-p.left-phone.clientLeft,y:r.top-p.top-phone.clientTop,width:r.width,height:r.height};
+        $('.detail-copy h3').textContent=card.textContent.replace('↗','').trim();$('.status').textContent='';
+        $('.choose').textContent=saved.has(card.dataset.index)?'已收藏 ✓':'收藏这条雪道';
+        card.setAttribute('aria-expanded','true');card.disabled=true;phone.append(card);card.classList.add('shared-active');
+        detail.hidden=false;detail.inert=false;list.inert=true;$('.back').focus({preventScroll:true});metric('stage','EXPAND');
+        animation=spring(0,render,{stiffness:240,damping:30});animation.to(1,()=>metric('stage','DETAIL'));
+      }));
+      $('.back').addEventListener('click',close);
+      $('.choose').addEventListener('click',()=>{if(!active)return;saved.add(active.dataset.index);$('.choose').textContent='已收藏 ✓';$('.status').textContent='已加入本次演示的收藏清单';});
+      detail.addEventListener('keydown',event=>{
+        if(event.key==='Escape'){event.preventDefault();close();}
+        if(event.key==='Tab'){const buttons=[$('.back'),$('.choose')];const next=event.shiftKey?buttons[0]:buttons[1];if(document.activeElement===next){event.preventDefault();buttons[event.shiftKey?1:0].focus();}}
+      });
+      new ResizeObserver(()=>{
+        if(!active)return;
+        // Untransformed slot offsets remain stable even while the background scales.
+        origin={x:slot.offsetLeft,y:slot.offsetTop,width:slot.offsetWidth,height:slot.offsetHeight};render(progress);
+      }).observe(phone);
+      metric('scale','×1.00');metric('crop','—');metric('stage','LIST');
+    })();
+})();
+</script></body></html>
