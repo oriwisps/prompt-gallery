@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>03 · 共享元素无缝展开 · MiMo</title>
+<style>*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:#12141a;color:#f2f4f8;font-family:Inter,"Segoe UI","Microsoft YaHei",sans-serif}
+.app{position:relative;width:min(440px,100%);margin:0 auto;min-height:100vh;padding:28px 18px 40px;overflow:hidden}
+.top h1{margin:0 0 6px;font-size:28px;letter-spacing:-.6px}
+.top p{margin:0 0 22px;color:#8b93a5;font-size:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;transform-origin:50% 30%;will-change:transform,opacity}
+.card{border:0;padding:0;background:#1c2030;border-radius:16px;overflow:hidden;text-align:left;color:inherit;font:inherit;cursor:pointer;display:block;transform-origin:0 0}
+.art{aspect-ratio:1;border-radius:0}
+.art-0{background:linear-gradient(145deg,#2b3a67,#7eb8da 45%,#f0e6d3)}
+.art-1{background:linear-gradient(160deg,#5c2a2a,#d4a373 50%,#faedcd)}
+.art-2{background:linear-gradient(135deg,#1b4332,#95d5b2 55%,#d8f3dc)}
+.art-3{background:linear-gradient(150deg,#3d2c5e,#c77dff 50%,#e0aaff)}
+.card span{display:block;padding:10px 12px 12px;font-size:12px;font-weight:600}
+.card small{display:block;margin-top:3px;color:#8b93a5;font-weight:400;font-size:11px}
+.card.focus-ring:focus-visible,.control:focus-visible,.save:focus-visible{outline:2px solid #7eb8da;outline-offset:3px}
+.detail{position:absolute;inset:0;z-index:5;pointer-events:none;display:flex;flex-direction:column}
+.detail:not([hidden]){pointer-events:none}
+.hero{position:absolute;left:0;right:0;top:0;height:240px;border-radius:0;will-change:transform,width,height,border-radius;background:#2b3a67;z-index:2}
+.copy{position:absolute;left:0;right:0;top:220px;padding:0 22px 30px;opacity:0;z-index:3;pointer-events:none}
+.detail.ready .copy{pointer-events:auto}
+.year{font-size:11px;letter-spacing:2px;color:#7eb8da}
+.copy h2{margin:8px 0 4px;font-size:30px;letter-spacing:-.8px}
+.artist{margin:0 0 14px;color:#a0a8ba;font-size:14px}
+.blurb{margin:0 0 22px;color:#8b93a5;font-size:12px;line-height:1.7}
+.save{border:0;border-radius:999px;padding:12px 22px;background:#f2f4f8;color:#12141a;font:inherit;font-weight:600;font-size:13px;cursor:pointer}
+.tip{min-height:16px;margin:12px 0 0;font-size:11px;color:#95d5b2}
+.back{position:absolute;top:18px;left:16px;z-index:4;background:#0009;border:0;color:#fff;border-radius:999px;padding:10px 14px;font-size:12px;cursor:pointer;opacity:0;pointer-events:none}
+.detail.open .back{opacity:1;pointer-events:auto}
+.detail.open .copy{opacity:1;transition:opacity .25s ease,transform .45s ease}
+.detail:not(.open) .copy{transform:translateY(18px)}
+.detail.open .copy{transform:translateY(0)}</style>
+</head><body>
+<div class="app" id="app">
+  <header class="top">
+    <h1>Collection</h1>
+    <p>4 张唱片，点选封面进入详情。</p>
+  </header>
+  <div class="grid" id="grid">
+    <button class="card" data-id="0" data-title="Night Drive" data-artist="Lumen" data-year="2024" aria-expanded="false">
+      <div class="art art-0"></div><span>Night Drive<small>Lumen</small></span>
+    </button>
+    <button class="card" data-id="1" data-title="Copper Rain" data-artist="Iris Vale" data-year="2023" aria-expanded="false">
+      <div class="art art-1"></div><span>Copper Rain<small>Iris Vale</small></span>
+    </button>
+    <button class="card" data-id="2" data-title="Glass Harbor" data-artist="North Line" data-year="2025" aria-expanded="false">
+      <div class="art art-2"></div><span>Glass Harbor<small>North Line</small></span>
+    </button>
+    <button class="card" data-id="3" data-title="Soft Static" data-artist="Field Notes" data-year="2022" aria-expanded="false">
+      <div class="art art-3"></div><span>Soft Static<small>Field Notes</small></span>
+    </button>
+  </div>
+  <section class="detail" id="detail" hidden aria-modal="true" role="dialog" aria-label="专辑详情">
+    <button class="back control" type="button">← 返回</button>
+    <div class="hero" id="hero" aria-hidden="true"></div>
+    <div class="copy">
+      <small class="year" id="d-year"></small>
+      <h2 id="d-title"></h2>
+      <p class="artist" id="d-artist"></p>
+      <p class="blurb">连续平滑的共享元素转场：同一张封面从列表位飞入详情顶部，列表容器同步缩放淡出。</p>
+      <button class="save" type="button">加入歌单</button>
+      <p class="tip" id="tip" aria-live="polite"></p>
+    </div>
+  </section>
+</div>
+<script>(() => {
+const app = document.getElementById('app');
+const grid = document.getElementById('grid');
+const detail = document.getElementById('detail');
+const hero = document.getElementById('hero');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+const cards = [...grid.querySelectorAll('.card')];
+let active = null;
+let raf = 0;
+
+function clamp(v,a,b){return Math.min(b,Math.max(a,v));}
+
+function springTo(from, to, ms, fn) {
+  return new Promise((resolve) => {
+    if (reduced.matches) { fn(to); resolve(); return; }
+    const start = performance.now();
+    cancelAnimationFrame(raf);
+    function frame(now) {
+      const t = clamp((now - start) / ms, 0, 1);
+      // smoothstep ease for continuous shared-element feel
+      const e = t * t * (3 - 2 * t);
+      fn(from + (to - from) * e);
+      if (t < 1) raf = requestAnimationFrame(frame);
+      else resolve();
+    }
+    raf = requestAnimationFrame(frame);
+  });
+}
+
+function artClass(card) {
+  return card.querySelector('.art').className;
+}
+
+async function openCard(card) {
+  if (active) return;
+  active = card;
+  const appRect = app.getBoundingClientRect();
+  const art = card.querySelector('.art');
+  const artRect = art.getBoundingClientRect();
+
+  // 将卡片提升为共享元素，并记录归位锚点（下一兄弟）
+  card.__next = card.nextElementSibling;
+  card.disabled = true;
+  card.setAttribute('aria-expanded', 'true');
+  card.classList.add('flying');
+  card.style.cssText = [
+    'position:absolute',
+    'left:' + (artRect.left - appRect.left) + 'px',
+    'top:' + (artRect.top - appRect.top) + 'px',
+    'width:' + artRect.width + 'px',
+    'height:' + artRect.height + 'px',
+    'margin:0',
+    'z-index:6',
+    'border-radius:16px',
+    'overflow:hidden',
+  ].join(';');
+  app.appendChild(card);
+  art.style.borderRadius = '0';
+
+  document.getElementById('d-title').textContent = card.dataset.title;
+  document.getElementById('d-artist').textContent = card.dataset.artist;
+  document.getElementById('d-year').textContent = card.dataset.year;
+  document.getElementById('tip').textContent = '';
+  hero.style.background = getComputedStyle(art).backgroundImage;
+  hero.style.opacity = '0';
+
+  detail.hidden = false;
+  grid.inert = true;
+  detail.querySelector('.back').focus({ preventScroll: true });
+
+  const target = { x: 0, y: 0, w: app.clientWidth, h: 240 };
+  const start = {
+    x: artRect.left - appRect.left,
+    y: artRect.top - appRect.top,
+    w: artRect.width,
+    h: artRect.height,
+  };
+
+  detail.classList.add('open');
+  await springTo(0, 1, 520, (p) => {
+    const x = start.x + (target.x - start.x) * p;
+    const y = start.y + (target.y - start.y) * p;
+    const w = start.w + (target.w - start.w) * p;
+    const h = start.h + (target.h - start.h) * p;
+    const r = 16 * (1 - p);
+    Object.assign(card.style, {
+      left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px',
+      borderRadius: r + 'px',
+    });
+    card.querySelector('span').style.opacity = String(clamp(1 - p * 3, 0, 1));
+    const scale = 1 - 0.04 * p;
+    grid.style.transform = 'scale(' + scale + ')';
+    grid.style.opacity = String(1 - p * 0.55);
+  });
+  detail.classList.add('ready');
+}
+
+async function closeDetail() {
+  if (!active) return;
+  detail.classList.remove('ready', 'open');
+  const card = active;
+  const rectHost = card.__originRect;
+
+  await springTo(1, 0, 420, (p) => {
+    const inv = 1 - p;
+    const x = rectHost.x * inv;
+    const y = rectHost.y * inv;
+    const w = rectHost.w + (app.clientWidth - rectHost.w) * p;
+    const h = rectHost.h + (240 - rectHost.h) * p;
+    const r = 16 * inv;
+    Object.assign(card.style, {
+      left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px',
+      borderRadius: r + 'px',
+    });
+    card.querySelector('span').style.opacity = String(clamp((p - 0.6) * 2.5, 0, 1));
+    grid.style.transform = 'scale(' + (0.96 + 0.04 * p) + ')';
+    grid.style.opacity = String(0.45 + 0.55 * p);
+  });
+
+  // 按记录的兄弟锚点归位，保持列表顺序
+  if (card.__next && card.__next.parentElement === grid) grid.insertBefore(card, card.__next);
+  else grid.appendChild(card);
+  card.style.cssText = '';
+  card.disabled = false;
+  card.setAttribute('aria-expanded', 'false');
+  card.querySelector('.art').style.borderRadius = '';
+  card.querySelector('span').style.opacity = '';
+  grid.style.cssText = '';
+  detail.hidden = true;
+  grid.inert = false;
+  card.focus({ preventScroll: true });
+  active = null;
+}
+
+cards.forEach((card) => {
+  card.addEventListener('click', () => {
+    const appRect = app.getBoundingClientRect();
+    const artR = card.querySelector('.art').getBoundingClientRect();
+    card.__originRect = {
+      x: artR.left - appRect.left,
+      y: artR.top - appRect.top,
+      w: artR.width,
+      h: artR.height,
+    };
+    openCard(card);
+  });
+});
+detail.querySelector('.back').addEventListener('click', closeDetail);
+detail.querySelector('.save').addEventListener('click', () => {
+  document.getElementById('tip').textContent = '已加入歌单';
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && active) closeDetail();
+});
+})();</script>
+</body></html>

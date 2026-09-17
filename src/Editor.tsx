@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { html } from "@codemirror/lang-html";
 import { css } from "@codemirror/lang-css";
@@ -19,11 +19,16 @@ import {
   Smartphone,
   Maximize2,
   Minimize2,
+  BookOpen,
+  X,
 } from "lucide-react";
 import type { Case, Version } from "./types";
 import { buildDocument } from "./preview";
 import { download } from "./api";
+import { randomId, copyText } from "./browser";
 import Cover from "./Cover";
+import "./terms.css";
+const Terms = lazy(() => import("./Terms"));
 
 export default function Editor({
   initial,
@@ -58,9 +63,30 @@ export default function Editor({
     [compare, setCompare] = useState(""),
     [mobile, setMobile] = useState(false),
     [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
+    [error, setError] = useState(""),
+    [termsOpen, setTermsOpen] = useState(false);
+  const promptRef = useRef<HTMLTextAreaElement>(null);
+  const termsButtonRef = useRef<HTMLButtonElement>(null);
+  const termsCloseRef = useRef<HTMLButtonElement>(null);
+  const promptSelection = useRef<{ versionId: string; start: number; end: number } | null>(null);
+  const closeTerms = () => {
+    setTermsOpen(false);
+    termsButtonRef.current?.focus();
+  };
+  useEffect(() => {
+    if (!termsOpen) return;
+    termsCloseRef.current?.focus();
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setTermsOpen(false);
+        termsButtonRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", escape);
+    return () => window.removeEventListener("keydown", escape);
+  }, [termsOpen]);
   const v = item.versions.find((v) => v.id === versionId)!,
-    dirty = JSON.stringify(item) !== saved || tagInput !== item.tags.join("，");
+    dirty = item.revision === 0 || JSON.stringify(item) !== saved || tagInput !== item.tags.join("，");
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -132,9 +158,25 @@ export default function Editor({
       setBusy(false);
     }
   };
+  const insertTerm = (text: string) => {
+    const selection = promptSelection.current;
+    const start = selection?.versionId === versionId ? selection.start : v.prompt.length;
+    const end = selection?.versionId === versionId ? selection.end : v.prompt.length;
+    const before = v.prompt.slice(0, start);
+    const after = v.prompt.slice(end);
+    const insertion = (before && !before.endsWith("\n") ? "\n" : "") + text +
+      (after && !after.startsWith("\n") ? "\n" : "");
+    updateVersion({ prompt: before + insertion + after });
+    setTermsOpen(false);
+    requestAnimationFrame(() => {
+      promptRef.current?.focus();
+      promptRef.current?.setSelectionRange(start + insertion.length, start + insertion.length);
+    });
+    notify("已插入当前版本的提示词，保存后生效");
+  };
   const copy = async (text: string) => {
     try {
-      await navigator.clipboard.writeText(text);
+      await copyText(text);
       notify("已复制");
     } catch {
       notify("复制失败，请手动选择文字复制");
@@ -210,7 +252,7 @@ export default function Editor({
               onClick={() => {
                 const next = {
                   ...v,
-                  id: crypto.randomUUID(),
+                  id: randomId(),
                   name: "尝试 " + (item.versions.length + 1),
                   createdAt: new Date().toISOString(),
                 };
@@ -288,12 +330,18 @@ export default function Editor({
               </button>
             </span>
             <textarea
+              ref={promptRef}
               className="prompt-input"
               placeholder="记录生成这个效果时使用的提示词…"
               value={v.prompt}
               onChange={(e) => updateVersion({ prompt: e.target.value })}
+              onSelect={(e) => { promptSelection.current = { versionId, start: e.currentTarget.selectionStart, end: e.currentTarget.selectionEnd }; }}
+              onBlur={(e) => { promptSelection.current = { versionId, start: e.currentTarget.selectionStart, end: e.currentTarget.selectionEnd }; }}
             />
           </label>
+          <button ref={termsButtonRef} className="term-open" aria-expanded={termsOpen} aria-controls="editor-terms" onClick={() => setTermsOpen(!termsOpen)}>
+            <BookOpen size={15} />查阅术语
+          </button>
           <div className="field-pair">
             <label>
               供应商 <em>*</em>
@@ -564,6 +612,13 @@ export default function Editor({
           </div>
         </div>
       </div>
+      {termsOpen && <aside id="editor-terms" className="term-panel" role="dialog" aria-label="提示词术语助手">
+        <header className="term-panel-heading">
+          <div><h2>术语助手</h2><p>插入到「{v.name}」的提示词光标处；未定位时追加到末尾。</p></div>
+          <button ref={termsCloseRef} aria-label="关闭术语助手" onClick={closeTerms}><X size={18} /></button>
+        </header>
+        <Suspense fallback={<p>正在加载术语…</p>}><Terms notify={notify} onInsert={insertTerm} /></Suspense>
+      </aside>}
     </section>
   );
 }

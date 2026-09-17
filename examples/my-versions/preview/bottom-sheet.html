@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>05 · 阻尼弹性抽屉 · MiMo</title>
+<style>*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#101318;color:#eef1f6;font-family:Inter,"Segoe UI","Microsoft YaHei",sans-serif;padding:20px}
+.phone{position:relative;width:min(340px,92vw);height:520px;border-radius:28px;overflow:hidden;background:#181c24;border:1px solid #ffffff14;box-shadow:0 30px 80px #0008}
+.bg{position:absolute;inset:0;padding:28px 22px}
+.badge{font:10px ui-monospace,monospace;letter-spacing:2px;color:#8b93a5}
+.bg h2{font-size:32px;line-height:1.05;letter-spacing:-1px;margin:14px 0 8px}
+.bg p{margin:0;color:#8b93a5;font-size:12px}
+.cover{margin-top:28px;height:160px;border-radius:18px;background:
+  radial-gradient(circle at 30% 30%,#5b8def55,transparent 50%),
+  radial-gradient(circle at 70% 70%,#c084fc44,transparent 45%),
+  linear-gradient(145deg,#1e2433,#252c3d)}
+.shade{position:absolute;inset:0;background:#000;opacity:.25;pointer-events:none}
+.sheet{position:absolute;left:0;right:0;top:0;height:480px;border-radius:24px 24px 0 0;background:#f3f4f0;color:#15181f;box-shadow:0 -12px 40px #0004;will-change:transform;display:flex;flex-direction:column}
+.handle{height:78px;display:flex;flex-direction:column;align-items:center;gap:14px;padding:12px 18px 0;touch-action:none;cursor:ns-resize;flex-shrink:0}
+.handle i{width:36px;height:4px;border-radius:4px;background:#c5c9c0}
+.handle span{align-self:flex-start;font-size:18px;font-weight:650}
+.body{padding:4px 18px 22px;overflow:auto;overscroll-behavior:contain;flex:1;min-height:0}
+.tracks{list-style:none;margin:0 0 18px;padding:0;display:grid;gap:8px}
+.tracks li{display:flex;gap:12px;align-items:center;padding:12px;border-radius:14px;background:#00000008}
+.tracks b{font:12px ui-monospace,monospace;color:#8a9184;width:22px}
+.tracks p{margin:0;font-size:13px;font-weight:600}
+.tracks small{color:#8a9184;font-size:11px}
+.play{width:100%;border:0;border-radius:999px;background:#15181f;color:#f5f7f2;padding:14px;font:inherit;font-weight:600;font-size:13px;cursor:pointer}
+.hint{margin:12px 0 0;text-align:center;font-size:10px;color:#8a9184;line-height:1.5}
+.toolbar{display:flex;gap:8px}
+.ctl{border:1px solid #ffffff22;background:#ffffff08;color:#c5cddd;border-radius:999px;padding:8px 16px;font:inherit;font-size:12px;cursor:pointer}
+.ctl.on{background:#5b8def33;border-color:#5b8def;color:#9ec2ff}
+.handle:focus-visible,.ctl:focus-visible,.play:focus-visible{outline:2px solid #5b8def;outline-offset:3px}</style>
+</head><body>
+<div class="phone">
+  <div class="bg">
+    <span class="badge">NOW PLAYING</span>
+    <h2>Deep Work<br>Playlist</h2>
+    <p>12 首专注曲目</p>
+    <div class="cover" aria-hidden="true"></div>
+  </div>
+  <div class="shade" id="shade"></div>
+  <section class="sheet" id="sheet" aria-label="播放列表抽屉">
+    <div class="handle" id="handle" role="slider" tabindex="0" aria-label="抽屉高度" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1">
+      <i></i>
+      <span>Up Next</span>
+    </div>
+    <div class="body" id="body">
+      <ul class="tracks">
+        <li><b>01</b><div><p>Focus Flow</p><small>4:12</small></div></li>
+        <li><b>02</b><div><p>Glass Keys</p><small>3:48</small></div></li>
+        <li><b>03</b><div><p>Night Study</p><small>5:01</small></div></li>
+        <li><b>04</b><div><p>Soft Grid</p><small>4:33</small></div></li>
+        <li><b>05</b><div><p>Calm Protocol</p><small>6:10</small></div></li>
+      </ul>
+      <button class="play" type="button">播放队列</button>
+      <p class="hint">拖动手柄 · 快速甩动可跨锚点 · 超出边界有橡皮筋阻力</p>
+    </div>
+  </section>
+</div>
+<div class="toolbar">
+  <button class="ctl" data-a="2" type="button">低</button>
+  <button class="ctl on" data-a="1" type="button">中</button>
+  <button class="ctl" data-a="0" type="button">全</button>
+</div>
+<script>(() => {
+const anchors = [48, 210, 400]; // top 位移：全/中/低
+const sheet = document.getElementById('sheet');
+const handle = document.getElementById('handle');
+const shade = document.getElementById('shade');
+const body = document.getElementById('body');
+const phone = document.querySelector('.phone');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+const clamp = (v,a,b)=>Math.min(b,Math.max(a,v));
+const LOW = 400, HIGH = 48, RUBBER = 0.25;
+
+let anchor = 1;
+let y = anchors[1];
+let vel = 0;
+let startY = 0, startV = 0, lastY = 0, lastT = 0;
+let dragging = false;
+let raf = 0;
+let velSmooth = 0;
+
+function paint(value){
+  sheet.style.transform = 'translateY(' + value + 'px)';
+  shade.style.opacity = String(clamp((420 - value) / 500, 0, .7));
+  body.style.maxHeight = Math.max(0, phone.clientHeight - value - 78) + 'px';
+  const over = Math.max(HIGH - value, value - LOW, 0);
+  handle.dataset.over = over > 0 ? '1' : '0';
+}
+
+function rubber(value){
+  if (value < HIGH) return HIGH - (HIGH - value) * RUBBER;
+  if (value > LOW) return LOW + (value - LOW) * RUBBER;
+  return value;
+}
+
+function springTo(target){
+  cancelAnimationFrame(raf);
+  if (reduced.matches) {
+    y = target; vel = 0; paint(y); return;
+  }
+  const stiffness = 320, damping = 28, eps = 0.05;
+  let last = performance.now();
+  function frame(now){
+    const dt = Math.min((now - last) / 1000, 0.033);
+    last = now;
+    const steps = 4, h = dt / steps;
+    for (let i = 0; i < steps; i++) {
+      vel += ((target - y) * stiffness - vel * damping) * h;
+      y += vel * h;
+    }
+    if (Math.abs(target - y) < eps && Math.abs(vel) < eps) {
+      y = target; vel = 0; paint(y);
+      return;
+    }
+    paint(y);
+    raf = requestAnimationFrame(frame);
+  }
+  raf = requestAnimationFrame(frame);
+}
+
+function snap(index){
+  anchor = clamp(index, 0, 2);
+  handle.setAttribute('aria-valuenow', String(2 - anchor));
+  handle.setAttribute('aria-valuetext', ['全屏','半屏','低位'][anchor]);
+  document.querySelectorAll('.ctl').forEach(b => b.classList.toggle('on', Number(b.dataset.a) === anchor));
+  springTo(anchors[anchor]);
+}
+
+handle.addEventListener('pointerdown', (e) => {
+  dragging = true;
+  cancelAnimationFrame(raf);
+  handle.setPointerCapture(e.pointerId);
+  startY = lastY = e.clientY;
+  startV = y;
+  lastT = performance.now();
+  velSmooth = 0;
+  vel = 0;
+});
+handle.addEventListener('pointermove', (e) => {
+  if (!dragging) return;
+  const now = performance.now();
+  const dt = Math.max(now - lastT, 1);
+  const inst = (e.clientY - lastY) / dt * 1000;
+  velSmooth = 0.65 * velSmooth + 0.35 * inst;
+  vel = velSmooth;
+  lastY = e.clientY;
+  lastT = now;
+  const raw = startV + (e.clientY - startY);
+  y = rubber(raw);
+  paint(y);
+});
+function release(e){
+  if (!dragging) return;
+  dragging = false;
+  try { handle.releasePointerCapture(e.pointerId); } catch {}
+  if (performance.now() - lastT > 100) vel = 0;
+  const projected = y + clamp(vel, -2400, 2400) * 0.16;
+  let best = 0, dist = Infinity;
+  anchors.forEach((a, i) => {
+    const d = Math.abs(a - projected);
+    if (d < dist) { dist = d; best = i; }
+  });
+  snap(best);
+}
+handle.addEventListener('pointerup', release);
+handle.addEventListener('pointercancel', release);
+handle.addEventListener('keydown', (e) => {
+  if (!['ArrowUp','ArrowDown','Home','End'].includes(e.key)) return;
+  e.preventDefault();
+  if (e.key === 'Home') snap(0);
+  else if (e.key === 'End') snap(2);
+  else snap(anchor + (e.key === 'ArrowUp' ? -1 : 1));
+});
+document.querySelectorAll('.ctl').forEach(b => b.addEventListener('click', () => snap(Number(b.dataset.a))));
+document.querySelector('.play').addEventListener('click', () => {
+  document.querySelector('.hint').textContent = '队列已开始播放';
+});
+snap(1);
+})();</script>
+</body></html>

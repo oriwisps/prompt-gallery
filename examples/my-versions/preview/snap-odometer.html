@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>04 · 磁吸游标与滚动码表 · MiMo</title>
+<style>*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#14161c;color:#f0f2f7;font-family:Inter,"Segoe UI","Microsoft YaHei",sans-serif}
+.panel{width:min(420px,92vw);padding:8px}
+.micro{font:10px ui-monospace,monospace;letter-spacing:2px;color:#7d8699;margin:0 0 14px}
+.readout{display:flex;align-items:baseline;gap:10px;margin-bottom:18px}
+.odometer{display:flex;height:64px;overflow:hidden;font:600 56px/64px ui-monospace,monospace;letter-spacing:-3px}
+.digit{width:36px;height:64px;overflow:hidden}
+.strip{will-change:transform}
+.strip span{display:block;height:64px;text-align:center}
+.point{width:14px;text-align:center}
+.unit{font-size:18px;color:#7d8699}
+.chart{touch-action:none;cursor:ew-resize;border-radius:16px;outline-offset:6px}
+.chart:focus-visible{outline:2px solid #ffb454}
+svg{width:100%;display:block;overflow:visible}
+.grid path{stroke:#ffffff0d;fill:none;stroke-width:1}
+.line{fill:none;stroke:#e8ecf5;stroke-width:2;stroke-linejoin:round}
+.area{fill:#5b8def18}
+.dots circle{fill:#6e9ef0}
+.cursor{stroke:#ffb45470;stroke-width:1}
+.halo{fill:#ffb45422}
+.knob{fill:#ffb454;stroke:#ffd9a0;stroke-width:2}
+.ticks{display:flex;justify-content:space-between;font-size:10px;color:#5c657a;padding:8px 6px 0}
+.caption{border-top:1px solid #ffffff12;margin:16px 0 0;padding-top:14px;font-size:12px;color:#9aa3b5}
+.caption b{color:#ffb454}
+.caption span{float:right;font-size:10px;color:#5c657a}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}</style>
+</head><body>
+<div class="panel">
+  <p class="micro">WEEKLY FOCUS · 专注时长</p>
+  <div class="readout">
+    <div class="odometer" id="odo" aria-hidden="true"></div>
+    <span class="unit">h</span>
+  </div>
+  <output class="sr-only" id="label">专注时长 3.2 小时</output>
+  <div class="chart" id="chart" role="slider" tabindex="0" aria-label="每日专注数据点" aria-valuemin="1" aria-valuemax="8" aria-valuenow="1">
+    <svg viewBox="0 0 360 200" id="svg">
+      <g class="grid"></g>
+      <path class="area"></path>
+      <path class="line"></path>
+      <g class="dots"></g>
+      <line class="cursor" y1="12" y2="180"></line>
+      <circle class="halo" r="12"></circle>
+      <circle class="knob" r="5"></circle>
+    </svg>
+    <div class="ticks"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span><span>今</span></div>
+  </div>
+  <p class="caption">第 <b id="idx">1</b> 个采样点 <span>靠近数据点将磁吸吸附</span></p>
+</div>
+<script>(() => {
+const values = [3.2, 4.8, 2.6, 5.9, 4.1, 6.4, 5.2, 7.1];
+const svg = document.getElementById('svg');
+const chart = document.getElementById('chart');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+const clamp = (v,a,b)=>Math.min(b,Math.max(a,v));
+const X = (i) => 24 + i * 312 / (values.length - 1);
+const Y = (v) => 180 - (v - 1) / 7 * 150;
+
+// 绘制
+const pts = values.map((v,i)=>X(i)+','+Y(v)).join(' L');
+svg.querySelector('.line').setAttribute('d','M'+pts);
+svg.querySelector('.area').setAttribute('d','M'+X(0)+',180 L'+pts+' L'+X(values.length-1)+',180Z');
+svg.querySelector('.dots').innerHTML = values.map((v,i)=>'<circle cx="'+X(i)+'" cy="'+Y(v)+'" r="3.5"/>').join('');
+svg.querySelector('.grid').innerHTML = [40,80,120,160,180].map(y=>'<path d="M16 '+y+'H344"/>').join('');
+
+// 码表滚轮
+const odo = document.getElementById('odo');
+function buildOdometer(){
+  odo.innerHTML = '';
+  const strips = [];
+  for (let d = 0; d < 2; d++) {
+    const digit = document.createElement('div');
+    digit.className = 'digit';
+    const strip = document.createElement('div');
+    strip.className = 'strip';
+    strip.innerHTML = Array.from({length:40},(_,n)=>'<span>'+(n%10)+'</span>').join('');
+    // 初始停在 0（index 10）
+    strip.style.transform = 'translateY(' + (-10 * 64) + 'px)';
+    digit.appendChild(strip);
+    odo.appendChild(digit);
+    strips.push({ strip, target: 10, last: 0, vel: 0, value: 10 });
+  }
+  const point = document.createElement('span');
+  point.className = 'point';
+  point.textContent = '.';
+  odo.appendChild(point);
+  for (let d = 0; d < 1; d++) {
+    const digit = document.createElement('div');
+    digit.className = 'digit';
+    const strip = document.createElement('div');
+    strip.className = 'strip';
+    strip.innerHTML = Array.from({length:40},(_,n)=>'<span>'+(n%10)+'</span>').join('');
+    strip.style.transform = 'translateY(' + (-2 * 64) + 'px)';
+    digit.appendChild(strip);
+    odo.appendChild(digit);
+    strips.push({ strip, target: 12, last: 2, vel: 0, value: 12 });
+  }
+  return strips;
+}
+const digits = buildOdometer();
+// 初始化显示 3.2 → digits 3,1,2 with offset 10
+digits[0].value = digits[0].target = 13; digits[0].last = 3;
+digits[1].value = digits[1].target = 11; digits[1].last = 1;
+digits[2].value = digits[2].target = 12; digits[2].last = 2;
+digits.forEach(d=>{ d.strip.style.transform='translateY('+(-d.value*64)+'px)'; });
+
+function rollNumber(value){
+  const chars = value.toFixed(1).replace('.','').padStart(3,'0');
+  digits.forEach((digit,i)=>{
+    const next = Number(chars[i]);
+    if (next === digit.last) return;
+    let delta = next - digit.last;
+    if (delta > 5) delta -= 10;
+    if (delta < -5) delta += 10;
+    digit.target += delta;
+    digit.last = next;
+    if (digit.target < 5) { digit.value += 10; digit.target += 10; }
+    if (digit.target > 34) { digit.value -= 10; digit.target -= 10; }
+  });
+  animateDigits();
+}
+
+let digitRaf = 0;
+function animateDigits(){
+  if (reduced.matches) {
+    digits.forEach(d=>{ d.value = d.target; d.vel = 0; d.strip.style.transform='translateY('+(-d.value*64)+'px)'; });
+    return;
+  }
+  cancelAnimationFrame(digitRaf);
+  function frame(){
+    let moving = false;
+    digits.forEach(d=>{
+      const force = (d.target - d.value) * 280 - d.vel * 28;
+      d.vel += force * (1/60);
+      d.value += d.vel * (1/60);
+      if (Math.abs(d.target - d.value) > 0.001 || Math.abs(d.vel) > 0.01) moving = true;
+      else { d.value = d.target; d.vel = 0; }
+      d.strip.style.transform = 'translateY(' + (-d.value * 64) + 'px)';
+    });
+    if (moving) digitRaf = requestAnimationFrame(frame);
+  }
+  digitRaf = requestAnimationFrame(frame);
+}
+
+// 游标磁吸
+let selected = 0;
+let cursorPos = 0; // 连续 index
+let cursorTarget = 0;
+let cursorRaf = 0;
+let cursorVel = 0;
+
+function paintCursor(index){
+  const i = clamp(index, 0, values.length - 1);
+  const lo = Math.floor(i), hi = Math.min(lo + 1, values.length - 1);
+  const t = i - lo;
+  const v = values[lo] + (values[hi] - values[lo]) * t;
+  const cx = X(i), cy = Y(v);
+  const cur = svg.querySelector('.cursor');
+  cur.setAttribute('x1', cx); cur.setAttribute('x2', cx);
+  ['.halo','.knob'].forEach(sel=>{
+    const el = svg.querySelector(sel);
+    el.setAttribute('cx', cx); el.setAttribute('cy', cy);
+  });
+  rollNumber(v);
+  document.getElementById('label').textContent = '专注时长 ' + v.toFixed(1) + ' 小时';
+}
+
+function animateCursor(){
+  if (reduced.matches) {
+    cursorPos = cursorTarget; paintCursor(cursorPos); return;
+  }
+  cancelAnimationFrame(cursorRaf);
+  function frame(){
+    const force = (cursorTarget - cursorPos) * 320 - cursorVel * 30;
+    cursorVel += force * (1/60);
+    cursorPos += cursorVel * (1/60);
+    if (Math.abs(cursorTarget - cursorPos) < 0.0005 && Math.abs(cursorVel) < 0.01) {
+      cursorPos = cursorTarget; cursorVel = 0;
+      paintCursor(cursorPos);
+      return;
+    }
+    paintCursor(cursorPos);
+    cursorRaf = requestAnimationFrame(frame);
+  }
+  cursorRaf = requestAnimationFrame(frame);
+}
+
+function setIndex(index, snap){
+  selected = clamp(index, 0, values.length - 1);
+  cursorTarget = selected;
+  animateCursor();
+  document.getElementById('idx').textContent = String(Math.round(selected) + 1);
+  chart.setAttribute('aria-valuenow', Math.round(selected) + 1);
+  chart.setAttribute('aria-valuetext', values[Math.round(selected)] + ' 小时');
+  chart.dataset.snap = snap ? 'on' : 'off';
+}
+
+function follow(e){
+  const r = svg.getBoundingClientRect();
+  const px = (e.clientX - r.left) / r.width * 360;
+  let idx = clamp((px - 24) / 312 * (values.length - 1), 0, values.length - 1);
+  const nearest = Math.round(idx);
+  const snapped = Math.abs(idx - nearest) < 0.22;
+  if (snapped) idx = nearest;
+  setIndex(idx, snapped);
+}
+
+// Pointer drag
+let dragging = false;
+chart.addEventListener('pointerdown', (e) => {
+  dragging = true;
+  chart.setPointerCapture(e.pointerId);
+  chart.focus({ preventScroll: true });
+  follow(e);
+});
+chart.addEventListener('pointermove', (e) => { if (dragging) follow(e); });
+function endDrag(e){
+  if (!dragging) return;
+  dragging = false;
+  try { chart.releasePointerCapture(e.pointerId); } catch {}
+  setIndex(Math.round(selected), true);
+}
+chart.addEventListener('pointerup', endDrag);
+chart.addEventListener('pointercancel', endDrag);
+chart.addEventListener('keydown', (e) => {
+  let t;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowUp') t = Math.round(selected) + 1;
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') t = Math.round(selected) - 1;
+  else if (e.key === 'Home') t = 0;
+  else if (e.key === 'End') t = values.length - 1;
+  else return;
+  e.preventDefault();
+  setIndex(t, true);
+});
+
+setIndex(0, true);
+})();</script>
+</body></html>

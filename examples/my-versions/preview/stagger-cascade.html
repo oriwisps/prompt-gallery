@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>07 · 物理弹簧交错流 · MiMo</title>
+<style>*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#12151c;color:#edf1f7;font-family:Inter,"Segoe UI","Microsoft YaHei",sans-serif;padding:20px}
+.phone{width:min(360px,92vw);background:#1a1f2a;border:1px solid #ffffff12;border-radius:24px;padding:22px 18px 14px;box-shadow:0 24px 60px #0006}
+header h2{margin:0 0 4px;font-size:26px;letter-spacing:-.6px}
+header p{margin:0 0 16px;font-size:12px;color:#8b95ab}
+.list{list-style:none;margin:0;padding:0 0 8px;display:grid;gap:10px;max-height:360px;overflow:auto;scrollbar-width:thin}
+.item{display:flex;gap:12px;align-items:center;padding:14px;border-radius:16px;background:#222936;border:1px solid #ffffff10;will-change:transform,opacity;transform-origin:50% 100%}
+.item i{width:28px;height:28px;border-radius:10px;display:grid;place-content:center;font:12px ui-monospace,monospace;font-style:normal;background:#5b8def33;color:#9ec2ff}
+.item b{display:block;font-size:13px;font-weight:600}
+.item span{font-size:11px;color:#8b95ab}
+.bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center}
+.ctl{border:1px solid #ffffff22;background:#ffffff08;color:#c9d4ea;border-radius:999px;padding:9px 18px;font:inherit;font-size:12px;cursor:pointer}
+.delay{display:flex;align-items:center;gap:8px;font-size:12px;color:#8b95ab}
+.delay input{accent-color:#5b8def;width:110px}
+.stat{font:12px ui-monospace,monospace;color:#5b8def;min-width:42px}
+.ctl:focus-visible,.delay input:focus-visible{outline:2px solid #5b8def;outline-offset:3px}</style>
+</head><body>
+<div class="phone">
+  <header>
+    <h2>Today</h2>
+    <p>6 项任务，依次抵达</p>
+  </header>
+  <ul class="list" id="list">
+    <li class="item"><i>1</i><div><b>Review design tokens</b><span>09:00</span></div></li>
+    <li class="item"><i>2</i><div><b>Ship motion lab notes</b><span>10:30</span></div></li>
+    <li class="item"><i>3</i><div><b>Sync with studio</b><span>13:00</span></div></li>
+    <li class="item"><i>4</i><div><b>Prototype press feel</b><span>15:20</span></div></li>
+    <li class="item"><i>5</i><div><b>Write changelog</b><span>16:45</span></div></li>
+    <li class="item"><i>6</i><div><b>Evening stretch</b><span>18:00</span></div></li>
+  </ul>
+</div>
+<div class="bar">
+  <button class="ctl replay" type="button">重播入场</button>
+  <label class="delay">间隔 <input type="range" min="40" max="200" step="10" value="90" aria-label="交错间隔"></label>
+  <span class="stat" id="stat">0 / 6</span>
+</div>
+<script>(() => {
+const items = [...document.querySelectorAll('.item')];
+const replayBtn = document.querySelector('.replay');
+const delayInput = document.querySelector('.delay input');
+const stat = document.getElementById('stat');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+let delay = 90;
+let timers = [];
+let springs = [];
+let gen = 0;
+
+function makeSpring(){
+  let value = 0, target = 0, vel = 0, raf = 0, last = 0, done;
+  const k = 260, c = 22, eps = 0.0015;
+  function tick(now){
+    const dt = Math.min((now - last) / 1000, 0.033);
+    last = now;
+    const steps = 4, h = dt / steps;
+    for (let i = 0; i < steps; i++) {
+      vel += ((target - value) * k - vel * c) * h;
+      value += vel * h;
+    }
+    if (Math.abs(value - target) < eps && Math.abs(vel) < eps) {
+      value = target; vel = 0; raf = 0;
+      const cb = done; done = undefined; cb && cb();
+      return;
+    }
+    raf = requestAnimationFrame(tick);
+  }
+  return {
+    to(next, cb){
+      if (reduced.matches) { value = target = next; cb && cb(); return; }
+      target = next; done = cb;
+      if (!raf) { last = performance.now(); raf = requestAnimationFrame(tick); }
+    },
+    stop(){ cancelAnimationFrame(raf); raf = 0; },
+  };
+}
+
+function paint(item, p){
+  const t = clamp(p, 0, 1);
+  item.style.opacity = String(t);
+  item.style.transform = 'translateY(' + (1 - t) * 40 + 'px) scale(' + (1 - (1 - t) * 0.04) + ')';
+}
+function clamp(v,a,b){return Math.min(b,Math.max(a,v));}
+
+function replay(){
+  gen++;
+  const g = gen;
+  timers.forEach(clearTimeout); timers = [];
+  springs.forEach(s => s.stop()); springs = [];
+  let finished = 0;
+  document.getElementById('list').scrollTop = 0;
+  stat.textContent = '0 / ' + items.length;
+  items.forEach((item, i) => {
+    const s = makeSpring();
+    springs.push(s);
+    paint(item, 0);
+    function enter(){
+      if (g !== gen) return;
+      s.to(1, () => {
+        finished++;
+        stat.textContent = finished + ' / ' + items.length;
+      });
+    }
+    if (reduced.matches) enter();
+    else timers.push(setTimeout(enter, i * delay));
+  });
+}
+
+replayBtn.addEventListener('click', replay);
+delayInput.addEventListener('input', () => { delay = Number(delayInput.value); });
+reduced.addEventListener('change', replay);
+window.addEventListener('pagehide', () => {
+  timers.forEach(clearTimeout);
+  springs.forEach(s => s.stop());
+});
+replay();
+})();</script>
+</body></html>

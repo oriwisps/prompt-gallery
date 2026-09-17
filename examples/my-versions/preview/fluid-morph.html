@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>02 · 流体胶囊形变 · MiMo</title>
+<style>*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#10131a;color:#eef2ff;font-family:Inter,"Segoe UI","Microsoft YaHei",sans-serif;background-image:
+  radial-gradient(ellipse at 20% 0,#3d5cff22,transparent 55%),
+  radial-gradient(ellipse at 80% 100%,#7ef0c518,transparent 50%)}
+.scene{width:min(420px,92vw);display:grid;gap:28px}
+.meta .tag{display:inline-block;font:11px ui-monospace,monospace;letter-spacing:3px;color:#8fa4ff}
+.meta h1{font-size:clamp(34px,8vw,48px);line-height:.98;letter-spacing:-1.5px;margin:12px 0 10px;font-weight:600}
+.meta p{margin:0;color:#93a0b8;font-size:13px}
+.fluid{position:relative;height:372px}
+.capsule,.panel{position:absolute;left:0;top:0;will-change:width,height,border-radius}
+.capsule{display:flex;align-items:center;gap:12px;width:168px;height:56px;padding:0 18px;border:0;border-radius:28px;background:linear-gradient(135deg,#6d8cff,#9a7bff);color:#fff;font:inherit;font-size:17px;font-weight:600;box-shadow:0 12px 40px #5b7cff55;cursor:pointer;z-index:2}
+.capsule .dot{width:10px;height:10px;border-radius:50%;background:#c8ffe8;box-shadow:0 0 12px #9dffd4}
+.capsule .temp{flex:1;text-align:left}
+.capsule .chev{opacity:.75;font-size:15px}
+.capsule[aria-expanded="true"]{pointer-events:none;opacity:0}
+.panel{width:168px;height:56px;border-radius:28px;background:linear-gradient(160deg,#1b2233,#151a27 55%,#1a2438);border:1px solid #ffffff18;box-shadow:0 24px 60px #0007,inset 0 1px #ffffff14;overflow:hidden;padding:22px 22px 20px;display:flex;flex-direction:column;gap:14px;z-index:1}
+.panel-head{display:flex;justify-content:space-between;align-items:flex-start;opacity:0;transform:translateY(10px)}
+.panel-head small{font-size:11px;color:#8b9bb8;letter-spacing:1px}
+.panel-head h2{margin:4px 0 0;font-size:22px;font-weight:600;letter-spacing:-.4px}
+.close{border:0;background:#ffffff14;color:#e8eeff;width:34px;height:34px;border-radius:50%;font-size:20px;line-height:1;cursor:pointer}
+.dial{position:relative;width:128px;height:128px;margin:2px auto 0;opacity:0;transform:scale(.7)}
+.ring{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 210deg,#6d8cff 0 40%,#7ef0c544 55%,#ffffff10 70%);mask:radial-gradient(farthest-side,transparent calc(100% - 10px),#000 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 10px),#000 0)}
+.core{position:absolute;inset:18px;border-radius:50%;background:#101522;display:grid;place-content:center;text-align:center;border:1px solid #ffffff10}
+.core b{font-size:36px;font-weight:600;letter-spacing:-1px;line-height:1}
+.core span{font-size:12px;color:#8fa0c0}
+.steps{display:flex;gap:10px;justify-content:center;opacity:0}
+.step{width:48px;height:48px;border-radius:16px;border:1px solid #ffffff1a;background:#ffffff08;color:#dfe7ff;font-size:22px;cursor:pointer}
+.step:hover{background:#6d8cff33}
+.facts{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;opacity:0}
+.facts li{background:#ffffff08;border:1px solid #ffffff10;border-radius:12px;padding:10px 8px;text-align:center}
+.facts span{display:block;font-size:10px;color:#8b9bb8;margin-bottom:4px}
+.facts b{font-size:13px;font-weight:600}
+.apply{width:100%;height:44px;border-radius:14px;background:linear-gradient(135deg,#6d8cff,#8f7bff);color:#fff;font:inherit;font-weight:600;font-size:14px;cursor:pointer;opacity:0}
+.status{margin:0;min-height:16px;font-size:11px;color:#7ef0c5;text-align:center}
+.control:focus-visible,.capsule:focus-visible,.step:focus-visible,.apply:focus-visible{outline:2px solid #7ef0c5;outline-offset:3px}
+.fluid[data-open="true"] .panel{pointer-events:auto}</style>
+</head><body>
+<div class="scene">
+  <div class="meta">
+    <span class="tag">CLIMATE</span>
+    <h1>Ambient<br>Control</h1>
+    <p>轻触胶囊，展开完整温控面板。</p>
+  </div>
+  <div class="fluid" id="fluid" data-open="false">
+    <button class="capsule" id="capsule" aria-expanded="false" aria-controls="panel" aria-label="展开温控面板">
+      <span class="dot"></span>
+      <span class="temp">22°</span>
+      <span class="chev" aria-hidden="true">↗</span>
+    </button>
+    <section class="panel" id="panel" role="dialog" aria-label="温控面板" inert>
+      <header class="panel-head">
+        <div>
+          <small>客厅 · 自动</small>
+          <h2>温度</h2>
+        </div>
+        <button class="close control" type="button" aria-label="关闭">×</button>
+      </header>
+      <div class="dial" aria-hidden="true">
+        <div class="ring"></div>
+        <div class="core"><b id="dial-num">22</b><span>°C</span></div>
+      </div>
+      <div class="steps" role="group" aria-label="调节温度">
+        <button class="step" type="button" data-delta="-1" aria-label="降低温度">−</button>
+        <button class="step" type="button" data-delta="1" aria-label="升高温度">+</button>
+      </div>
+      <ul class="facts">
+        <li><span>湿度</span><b>48%</b></li>
+        <li><span>模式</span><b>静音</b></li>
+        <li><span>能耗</span><b>低</b></li>
+      </ul>
+      <button class="apply close" type="button">应用设定</button>
+      <p class="status" id="status" aria-live="polite"></p>
+    </section>
+  </div>
+</div>
+<script>(() => {
+const fluid = document.getElementById('fluid');
+const capsule = document.getElementById('capsule');
+const panel = document.getElementById('panel');
+const dialNum = document.getElementById('dial-num');
+const status = document.getElementById('status');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+let open = false;
+let temp = 22;
+
+// 高阻尼流体：三通道（宽/高/圆角）同一进度驱动，临界阻尼收敛。
+const PILL = { w: 168, h: 56, r: 28 };
+const BOARD = { w: 0, h: 0, r: 26 };
+
+function measure() {
+  const maxW = Math.min(fluid.clientWidth, 420);
+  BOARD.w = maxW;
+  BOARD.h = 348;
+  paint(morph.value);
+}
+
+function paint(progress) {
+  const w = PILL.w + (BOARD.w - PILL.w) * progress;
+  const h = PILL.h + (BOARD.h - PILL.h) * progress;
+  const r = PILL.r + (BOARD.r - PILL.r) * progress;
+  fluid.style.setProperty('--w', w + 'px');
+  Object.assign(panel.style, { width: w + 'px', height: h + 'px', borderRadius: r + 'px' });
+  // 内容按进度分段显现
+  const fade = (start, end) => clamp((progress - start) / (end - start), 0, 1);
+  const head = panel.querySelector('.panel-head');
+  const dial = panel.querySelector('.dial');
+  const steps = panel.querySelector('.steps');
+  const facts = panel.querySelector('.facts');
+  const apply = panel.querySelector('.apply');
+  head.style.opacity = fade(0.15, 0.45);
+  head.style.transform = 'translateY(' + (1 - fade(0.15, 0.45)) * 10 + 'px)';
+  dial.style.opacity = fade(0.25, 0.6);
+  dial.style.transform = 'scale(' + (0.7 + 0.3 * fade(0.25, 0.6)) + ')';
+  steps.style.opacity = fade(0.4, 0.7);
+  facts.style.opacity = fade(0.5, 0.85);
+  apply.style.opacity = fade(0.55, 0.95);
+}
+
+// 阻尼弹簧（stiffness 高、damping 大 → 流体感）
+function makeSpring(initial) {
+  let value = initial, target = initial, vel = 0, raf = 0, last = 0;
+  const stiffness = 260, damping = 32, eps = 0.0015;
+  function tick(now) {
+    const dt = Math.min((now - last) / 1000, 0.033);
+    last = now;
+    const steps = 4, h = dt / steps;
+    for (let i = 0; i < steps; i++) {
+      vel += ((target - value) * stiffness - vel * damping) * h;
+      value += vel * h;
+    }
+    if (Math.abs(value - target) < eps && Math.abs(vel) < eps) {
+      value = target; vel = 0; raf = 0; paint(value); return;
+    }
+    paint(value);
+    raf = requestAnimationFrame(tick);
+  }
+  return {
+    get value() { return value; },
+    to(next) {
+      if (reduced.matches) { value = target = next; vel = 0; paint(value); return; }
+      target = next;
+      if (!raf) { last = performance.now(); raf = requestAnimationFrame(tick); }
+    },
+    jump(next) { cancelAnimationFrame(raf); raf = 0; value = target = next; vel = 0; paint(value); },
+    stop() { cancelAnimationFrame(raf); raf = 0; },
+  };
+}
+
+const morph = makeSpring(0);
+
+function setExpanded(next) {
+  open = next;
+  fluid.dataset.open = String(open);
+  capsule.setAttribute('aria-expanded', String(open));
+  panel.inert = !open;
+  morph.to(open ? 1 : 0);
+  if (!open) {
+    status.textContent = '';
+    capsule.focus({ preventScroll: true });
+  } else {
+    status.textContent = '';
+    panel.querySelector('.close').focus({ preventScroll: true });
+  }
+}
+
+capsule.addEventListener('click', () => setExpanded(true));
+panel.querySelectorAll('.close').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    if (btn.classList.contains('apply')) status.textContent = '已应用 ' + temp + '°C';
+    setExpanded(false);
+  });
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && open) setExpanded(false);
+});
+panel.querySelectorAll('.step').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    temp = clamp(temp + Number(btn.dataset.delta), 16, 30);
+    dialNum.textContent = String(temp);
+  });
+});
+reduced.addEventListener('change', () => morph.jump(open ? 1 : 0));
+new ResizeObserver(() => measure()).observe(fluid);
+measure();
+morph.jump(0);
+})();</script>
+</body></html>

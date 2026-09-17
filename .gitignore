@@ -7,3 +7,9 @@ test-results/
 .qa/
 .codebase-memory/
 *.tsbuildinfo
+.idea
+
+# Local deployment scripts
+/publish.bat
+/scripts/publish.ps1
+/scripts/release.sh

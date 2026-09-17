@@ -9,6 +9,8 @@ import {
   Check,
   X,
   RefreshCw,
+  BookOpen,
+  Library,
 } from "lucide-react";
 import type { Auth, Case } from "./types";
 import { api } from "./api";
@@ -16,6 +18,8 @@ import { newCase, sampleCases } from "./samples";
 import AuthScreen from "./Auth";
 import Gallery from "./Gallery";
 const Editor = lazy(() => import("./Editor"));
+const Terms = lazy(() => import("./Terms"));
+const Resources = lazy(() => import("./Resources"));
 import Backup from "./Backup";
 export default function App() {
   const [auth, setAuth] = useState<Auth | null>(null),
@@ -111,6 +115,18 @@ export default function App() {
           >
             <Heart size={17} />
             我的收藏<span>{items.filter((c) => c.favorite).length}</span>
+          </button>
+          <button
+            className={page === "resources" ? "active" : ""}
+            onClick={() => navigate("resources")}
+          >
+            <Library size={17} />设计资源
+          </button>
+          <button
+            className={page === "terms" ? "active" : ""}
+            onClick={() => navigate("terms")}
+          >
+            <BookOpen size={17} />术语库
           </button>
           <button
             className={page === "backup" ? "active" : ""}
@@ -221,6 +237,19 @@ export default function App() {
                 notify("案例已删除");
               }}
             />
+          </Suspense>
+        ) : page === "resources" ? (
+          <Suspense fallback={<div className="loading">正在加载设计资源…</div>}>
+            <Resources notify={notify} onDirty={setDirty} onCreate={(item) => {
+              setDirty(false);
+              setPage("gallery");
+              setSelected(item);
+              notify("已创建示例副本，点击保存加入案例库");
+            }} />
+          </Suspense>
+        ) : page === "terms" ? (
+          <Suspense fallback={<div className="loading">正在加载术语库…</div>}>
+            <Terms notify={notify} />
           </Suspense>
         ) : page === "backup" ? (
           <Backup count={items.length} onImported={reload} notify={notify} />

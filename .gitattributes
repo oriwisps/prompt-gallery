@@ -1,0 +1,4 @@
+# Preserve the exact upstream bytes recorded in source.json on every platform.
+src/resources/upstream/** -text
+*.sh text eol=lf
+*.bat text eol=crlf

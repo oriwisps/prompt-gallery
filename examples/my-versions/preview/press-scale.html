@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>08 · 弹性微缩触觉反馈 · MiMo</title>
+<style>*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#101218;color:#f0f2f7;font-family:Inter,"Segoe UI","Microsoft YaHei",sans-serif}
+.stage{width:min(400px,92vw);text-align:center;padding:20px}
+.eyebrow{font:11px ui-monospace,monospace;letter-spacing:3px;color:#7d8699;margin:0 0 10px}
+h1{font-size:clamp(28px,6vw,36px);letter-spacing:-1px;margin:0 0 36px;font-weight:600}
+.btn{width:100%;display:flex;align-items:center;justify-content:center;gap:16px;border:0;border-radius:999px;padding:26px 18px;background:linear-gradient(180deg,#2f3545,#1c2130);color:#f4f6fb;font:inherit;font-size:24px;font-weight:600;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;will-change:transform;box-shadow:0 10px 28px #0006, inset 0 1px #ffffff22}
+.btn .arrow{font-size:20px;opacity:.8}
+.status{min-height:22px;margin:22px 0 18px;font-size:13px;color:#8b93a5}
+.meter{height:6px;border-radius:99px;background:#ffffff10;overflow:hidden}
+.bar{height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,#5b8def,#7cf0c8);transition:width .05s linear}
+.btn:focus-visible{outline:2px solid #7cf0c8;outline-offset:4px}</style>
+</head><body>
+<div class="stage">
+  <p class="eyebrow">HAPTIC PREVIEW</p>
+  <h1>Feel the press.</h1>
+  <button class="btn" id="btn" type="button">
+    <span class="label">Launch</span>
+    <span class="arrow" aria-hidden="true">→</span>
+  </button>
+  <p class="status" id="status" aria-live="polite">按住按钮感受压缩与回弹</p>
+  <div class="meter" aria-hidden="true">
+    <div class="bar" id="bar"></div>
+  </div>
+</div>
+<script>(() => {
+const btn = document.getElementById('btn');
+const status = document.getElementById('status');
+const bar = document.getElementById('bar');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+const clamp = (v,a,b)=>Math.min(b,Math.max(a,v));
+let pressed = false;
+let launches = 0;
+let peak = 0;
+
+// 弹簧：压缩轻阻尼 → 释放允许超调
+let value = 1, vel = 0, target = 1, raf = 0, last = 0;
+const k = 420, c = 18, eps = 0.00008;
+
+function paint(v){
+  btn.style.transform = 'scale(' + v + ')';
+  const depth = clamp((1 - v) / 0.04, 0, 1);
+  btn.style.boxShadow =
+    'inset 0 ' + (depth * 8) + 'px ' + (depth * 18) + 'px rgba(0,0,0,.55), ' +
+    '0 ' + (10 - depth * 8) + 'px ' + (28 - depth * 14) + 'px rgba(0,0,0,.45), ' +
+    'inset 0 1px rgba(255,255,255,.14)';
+  peak = Math.max(peak, (v - 1) * 100);
+  bar.style.width = clamp((v - 0.94) / 0.08 * 100, 0, 100) + '%';
+}
+
+function tick(now){
+  const dt = Math.min((now - last) / 1000, 0.033);
+  last = now;
+  const steps = 4, h = dt / steps;
+  for (let i = 0; i < steps; i++) {
+    vel += ((target - value) * k - vel * c) * h;
+    value += vel * h;
+  }
+  if (Math.abs(value - target) < eps && Math.abs(vel) < eps) {
+    value = target; vel = 0; raf = 0; paint(value); return;
+  }
+  paint(value);
+  raf = requestAnimationFrame(tick);
+}
+
+function to(next){
+  if (reduced.matches) { value = target = next; vel = 0; paint(value); return; }
+  target = next;
+  if (!raf) { last = performance.now(); raf = requestAnimationFrame(tick); }
+}
+
+function down(){
+  if (pressed) return;
+  pressed = true;
+  peak = 0;
+  to(0.96);
+}
+function up(){
+  if (!pressed) return;
+  pressed = false;
+  to(1);
+}
+
+btn.addEventListener('pointerdown', (e) => {
+  btn.setPointerCapture(e.pointerId);
+  down();
+});
+btn.addEventListener('pointerup', up);
+btn.addEventListener('pointercancel', up);
+btn.addEventListener('keydown', (e) => {
+  if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); down(); }
+});
+btn.addEventListener('keyup', (e) => {
+  if (e.key === ' ' || e.key === 'Enter') up();
+});
+btn.addEventListener('blur', up);
+window.addEventListener('blur', up);
+btn.addEventListener('click', () => {
+  launches++;
+  status.textContent = '已发射 · 第 ' + launches + ' 次 · 超调 +' + peak.toFixed(1) + '%';
+});
+paint(1);
+})();</script>
+</body></html>

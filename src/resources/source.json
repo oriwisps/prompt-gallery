@@ -1,0 +1,77 @@
+{
+  "licenseText": "MIT License\n\nCopyright (c) 2026 西瓜同学\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n",
+  "files": [
+    {
+      "path": "LICENSE",
+      "sha256": "eb21a561decb7f663dfcf3bc12fc07055f19ea20c814520eca04e011c1f3c8e0"
+    },
+    {
+      "path": "SKILL.md",
+      "sha256": "b3c95a871163a8fbed75dca16a6530170c6311627c577dd12e05242e412a2b8c"
+    },
+    {
+      "path": "examples/acru-financial-dashboard.html",
+      "sha256": "68aa46e1879d25d062aed7fcbe5edde60ea18b64567281ef49cf34fe0b7a14c1"
+    },
+    {
+      "path": "examples/caliber-precision-horology.html",
+      "sha256": "20a63413387a60f1e02d038184a74306175b32f6e182a2387bd134df6368d6c1"
+    },
+    {
+      "path": "examples/EXAMPLES.md",
+      "sha256": "d4ff553f55b42894e0061bef016a9f6a8da54848db1a5274dfde4ffc1d421bb5"
+    },
+    {
+      "path": "examples/h5-brew-mobile-pdp.html",
+      "sha256": "d7c245958899622a392bdb40e5b426fab4e8fd6f2f531f4b85b56b64b6a767d5"
+    },
+    {
+      "path": "examples/h5-peach-daily-desk.html",
+      "sha256": "6b014632ea451e02a739df01260d1da67e0b13efff1fb46142c776d1c31aa63a"
+    },
+    {
+      "path": "examples/ledgerio-treasury-console.html",
+      "sha256": "aeddcd893407d416f1ba30bfaa2eecf5e9f4fadd5e55b0268ae48b0b39a7987f"
+    },
+    {
+      "path": "examples/morph-variable-type.html",
+      "sha256": "acb90a523a7203d777d383174d9506cde9125718ed3aa0a0563079a2d623680b"
+    },
+    {
+      "path": "references/chart-crafting.md",
+      "sha256": "151cc990741c11c3f0256c9730026da70f6b9a77dec48f5b628993c92d405276"
+    },
+    {
+      "path": "references/commerce-ui.md",
+      "sha256": "c6a0a5e02c40e95b883fb004008a1a9d28524b79a34a49753d417a5c0c4621f3"
+    },
+    {
+      "path": "references/design-dna.md",
+      "sha256": "ed52ffd04b72bc1ab3dbdcb7510fb246943d3df403a6495b127977f692e1bffe"
+    },
+    {
+      "path": "references/h5-mobile.md",
+      "sha256": "12e9fbbc7829ee4424ba4f86efddd5fcd060832c8d111b6458eeabc74dfe7137"
+    },
+    {
+      "path": "references/hero-engines.md",
+      "sha256": "27b40984aed27f9dd9796fe3862919d8c7e8303197c55d8d1d8e6cd093d68390"
+    },
+    {
+      "path": "references/preflight.md",
+      "sha256": "1139d493b309c55844e498492b01f8eb10d079d5868e372254934d974e3df019"
+    },
+    {
+      "path": "references/product-palettes.md",
+      "sha256": "cb13e76707bb21c7ce42fc8a97a90543735c52af54e0b95b9040c28b017e4a38"
+    },
+    {
+      "path": "references/product-ui.md",
+      "sha256": "7120c76be6c1a35872d2c2dec21dd06c663c75b0f98c77e575f66b717561473b"
+    }
+  ],
+  "license": "MIT (upstream content); third-party dependencies retain their own licenses",
+  "revision": "5050b6c71e27b829d1b3087d2be889d29c60db00",
+  "retrievedAt": "2026-09-16",
+  "repository": "https://github.com/mouse-lin/finesse-skill"
+}

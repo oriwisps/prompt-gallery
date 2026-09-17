@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>流光触感卡片 · 3D 透视与弹簧回正 · MiMo</title>
+<style>*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b0d13;color:#eef2ff;font-family:Inter,"Segoe UI","Microsoft YaHei",sans-serif;background-image:radial-gradient(ellipse at 50% 40%,#1a224044,transparent 60%)}
+main{width:min(360px,92vw);padding:36px 12px;display:grid;justify-items:center;gap:28px}
+header{text-align:center}
+header h1{margin:0 0 8px;font-size:22px;font-weight:550;letter-spacing:.5px}
+header p{margin:0;font-size:11px;color:#8b95ad;letter-spacing:1px}
+.stage{width:min(300px,100%);aspect-ratio:.7;perspective:900px;touch-action:none;cursor:grab;outline:none}
+.stage:active{cursor:grabbing}
+.stage:focus-visible{outline:2px solid #8ab4ff;outline-offset:14px;border-radius:24px}
+.card{--px:50%;--py:50%;--sheen:0;position:relative;width:100%;height:100%;border-radius:26px;transform-style:preserve-3d;will-change:transform;pointer-events:none;border:1px solid #b7d0f540;background:linear-gradient(155deg,#243654,#121a2c 50%,#2a2440);box-shadow:0 28px 60px #0008,inset 0 1px #fff2}
+.sheen{position:absolute;inset:0;border-radius:inherit;overflow:hidden}
+.sheen:before{content:"";position:absolute;inset:-30%;background:radial-gradient(circle at var(--px) var(--py),#ffffffaa 0%,#9ec9ff55 18%,#c9b0ff33 34%,transparent 62%);mix-blend-mode:screen;opacity:calc(.15 + var(--sheen)*.85)}
+.sheen:after{content:"";position:absolute;inset:0;background:linear-gradient(125deg,transparent 30%,#ffffff10 48%,transparent 62%)}
+.content{position:absolute;inset:26px;display:flex;flex-direction:column;justify-content:space-between;transform:translateZ(36px)}
+.row{display:flex;justify-content:space-between;align-items:center;font-size:11px;letter-spacing:2px;color:#c5d4ef}
+.chip{width:34px;height:34px;border-radius:12px;display:grid;place-content:center;background:#ffffff14;font-size:16px}
+.mid b{display:block;font-size:34px;font-weight:550;letter-spacing:-1px}
+.mid p{margin:6px 0 0;font-size:12px;color:#9aabc8}
+.bottom{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:1px}
+.hint{text-align:center;font-size:12px;color:#8b95ad;margin:0}
+.hint span{display:block;margin-top:6px;font-size:10px;color:#5c677e;letter-spacing:1px}</style>
+</head><body>
+<main>
+  <header>
+    <h1>Light, under your thumb.</h1>
+    <p>Perspective card · radial sheen · spring return</p>
+  </header>
+  <div class="stage" id="stage" tabindex="0" role="img"
+    aria-label="流光卡片。移动指针或按住拖动体验倾斜与反光，松手弹性回正；方向键也可控制。">
+    <article class="card" id="card">
+      <div class="sheen" aria-hidden="true"></div>
+      <div class="content">
+        <div class="row">
+          <span>AETHER</span>
+          <span class="chip">∞</span>
+        </div>
+        <div class="mid">
+          <b>Prism</b>
+          <p>触感流光系列</p>
+        </div>
+        <div class="row bottom">
+          <span>•••• 2048</span>
+          <span>12/28</span>
+        </div>
+      </div>
+    </article>
+  </div>
+  <p class="hint">移动或拖动卡片<span>倾斜 · 径向流光 · 弹簧回正</span></p>
+</main>
+<script>(() => {
+const stage = document.getElementById('stage');
+const card = document.getElementById('card');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+const clamp = (v,a,b)=>Math.min(b,Math.max(a,v));
+const state = { x:0, y:0, vx:0, vy:0, tx:0, ty:0, sheen:0, tSheen:0 };
+let raf = 0, last = 0, pointer = null;
+
+function paint(){
+  card.style.transform = 'rotateX(' + state.x + 'deg) rotateY(' + state.y + 'deg)';
+  card.style.setProperty('--sheen', state.sheen.toFixed(4));
+}
+
+function animate(now){
+  const dt = Math.min((now - last) / 1000 || 1/60, 1/30);
+  last = now;
+  const steps = 4, h = dt / steps;
+  for (let i = 0; i < steps; i++) {
+    state.vx += ((state.tx - state.x) * 220 - state.vx * 20) * h;
+    state.vy += ((state.ty - state.y) * 220 - state.vy * 20) * h;
+    state.x += state.vx * h;
+    state.y += state.vy * h;
+  }
+  state.sheen += (state.tSheen - state.sheen) * (1 - Math.exp(-11 * dt));
+  if (reduced.matches) {
+    state.x = state.y = state.vx = state.vy = 0;
+    state.sheen = state.tSheen;
+  }
+  const settled =
+    Math.abs(state.x - state.tx) + Math.abs(state.y - state.ty) +
+    Math.abs(state.vx) + Math.abs(state.vy) < 0.012 &&
+    Math.abs(state.sheen - state.tSheen) < 0.001;
+  if (settled || reduced.matches) {
+    state.x = reduced.matches ? 0 : state.tx;
+    state.y = reduced.matches ? 0 : state.ty;
+    state.vx = state.vy = 0;
+    state.sheen = state.tSheen;
+    raf = 0;
+    paint();
+    return;
+  }
+  paint();
+  raf = requestAnimationFrame(animate);
+}
+
+function wake(){
+  if (!raf) { last = performance.now(); raf = requestAnimationFrame(animate); }
+}
+
+function follow(e){
+  if (pointer !== null && e.pointerId !== pointer) return;
+  if (e.pointerType !== 'mouse' && pointer === null) return;
+  const b = stage.getBoundingClientRect();
+  const x = clamp((e.clientX - b.left) / b.width, 0, 1);
+  const y = clamp((e.clientY - b.top) / b.height, 0, 1);
+  state.tx = (0.5 - y) * 20;   // ±10°
+  state.ty = (x - 0.5) * 28;   // ±14°
+  state.tSheen = 1;
+  card.style.setProperty('--px', (x * 100) + '%');
+  card.style.setProperty('--py', (y * 100) + '%');
+  wake();
+}
+
+function release(){
+  pointer = null;
+  state.tx = state.ty = 0;
+  state.tSheen = 0;
+  wake();
+}
+
+stage.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') follow(e); });
+stage.addEventListener('pointermove', (e) => {
+  if (pointer !== null && e.pointerId !== pointer) return;
+  follow(e);
+});
+stage.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse' && pointer === null) release(); });
+stage.addEventListener('pointerdown', (e) => {
+  pointer = e.pointerId;
+  stage.setPointerCapture(e.pointerId);
+  follow(e);
+});
+stage.addEventListener('pointerup', (e) => {
+  if (pointer === e.pointerId) release();
+});
+stage.addEventListener('pointercancel', release);
+stage.addEventListener('blur', release);
+window.addEventListener('blur', release);
+
+stage.addEventListener('keydown', (e) => {
+  const map = { ArrowLeft:[0,-4], ArrowRight:[0,4], ArrowUp:[-3,0], ArrowDown:[3,0] };
+  if (e.key === 'Escape') { release(); return; }
+  const d = map[e.key];
+  if (!d) return;
+  e.preventDefault();
+  state.tx = clamp(state.tx + d[0], -10, 10);
+  state.ty = clamp(state.ty + d[1], -14, 14);
+  state.tSheen = 1;
+  wake();
+});
+stage.addEventListener('keyup', (e) => {
+  if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) release();
+});
+
+paint();
+})();</script>
+</body></html>

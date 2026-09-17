@@ -1,7 +1,8 @@
 import type { Case, Theme, Version } from "./types";
+import { randomId } from "./browser";
 export function newVersion(): Version {
   return {
-    id: crypto.randomUUID(),
+    id: randomId(),
     name: "初始版本",
     prompt: "",
     provider: "",
@@ -18,7 +19,7 @@ export function newCase(): Case {
   const v = newVersion(),
     now = new Date().toISOString();
   return {
-    id: crypto.randomUUID(),
+    id: randomId(),
     title: "",
     tags: [],
     favorite: false,
