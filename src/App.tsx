@@ -11,21 +11,26 @@ import {
   RefreshCw,
   BookOpen,
   Library,
+  FlaskConical,
 } from "lucide-react";
 import type { Auth, Case } from "./types";
 import { api } from "./api";
 import { newCase, sampleCases } from "./samples";
+import { randomId } from "./browser";
 import AuthScreen from "./Auth";
 import Gallery from "./Gallery";
 const Editor = lazy(() => import("./Editor"));
 const Terms = lazy(() => import("./Terms"));
 const Resources = lazy(() => import("./Resources"));
+const TestZone = lazy(() => import("./TestZone"));
 import Backup from "./Backup";
 export default function App() {
   const [auth, setAuth] = useState<Auth | null>(null),
     [items, setItems] = useState<Case[]>([]),
     [page, setPage] = useState("gallery"),
     [selected, setSelected] = useState<Case | null>(null),
+    [initialVersionId, setInitialVersionId] = useState(""),
+    [testRecordId, setTestRecordId] = useState(""),
     [tag, setTag] = useState(""),
     [dirty, setDirty] = useState(false),
     [toast, setToast] = useState(""),
@@ -121,6 +126,12 @@ export default function App() {
             onClick={() => navigate("resources")}
           >
             <Library size={17} />设计资源
+          </button>
+          <button
+            className={page === "test-zone" ? "active" : ""}
+            onClick={() => navigate("test-zone")}
+          >
+            <FlaskConical size={17} />测试专区
           </button>
           <button
             className={page === "terms" ? "active" : ""}
@@ -221,6 +232,8 @@ export default function App() {
             <Editor
               key={selected.id}
               initial={selected}
+              initialVersionId={initialVersionId}
+              returnLabel={page === "test-zone" ? "返回测试专区" : "返回案例库"}
               items={items}
               onSave={save}
               notify={notify}
@@ -250,6 +263,24 @@ export default function App() {
         ) : page === "terms" ? (
           <Suspense fallback={<div className="loading">正在加载术语库…</div>}>
             <Terms notify={notify} />
+          </Suspense>
+        ) : page === "test-zone" ? (
+          <Suspense fallback={<div className="loading">正在加载测试专区…</div>}>
+            <TestZone
+              items={items}
+              notify={notify}
+              initialRecordId={testRecordId}
+              initialVersionId={initialVersionId}
+              onCreate={(item) => { setTestRecordId(item.id); setInitialVersionId(""); setSelected(item); }}
+              onOpen={(item, versionId) => { setTestRecordId(item.id); setInitialVersionId(versionId); setSelected(item); }}
+              onAddVersion={(item, baseVersionId) => {
+                const current = item.versions.find((version) => version.id === baseVersionId) ?? item.versions[0];
+                const next = { ...current, id: randomId(), name: `尝试 ${item.versions.length + 1}`, createdAt: new Date().toISOString() };
+                setTestRecordId(item.id);
+                setInitialVersionId(next.id);
+                setSelected({ ...item, versions: [...item.versions, next] });
+              }}
+            />
           </Suspense>
         ) : page === "backup" ? (
           <Backup count={items.length} onImported={reload} notify={notify} />

@@ -32,6 +32,8 @@ const Terms = lazy(() => import("./Terms"));
 
 export default function Editor({
   initial,
+  initialVersionId,
+  returnLabel = "返回案例库",
   items,
   onSave,
   onClose,
@@ -40,6 +42,8 @@ export default function Editor({
   onDirty,
 }: {
   initial: Case;
+  initialVersionId?: string;
+  returnLabel?: string;
   items: Case[];
   onSave: (c: Case) => Promise<Case>;
   onClose: () => void;
@@ -50,13 +54,13 @@ export default function Editor({
   const [item, setItem] = useState<Case>(() => structuredClone(initial)),
     [tagInput, setTagInput] = useState(initial.tags.join("，")),
     [saved, setSaved] = useState(JSON.stringify(initial)),
-    [versionId, setVersionId] = useState(initial.bestVersionId),
+    [versionId, setVersionId] = useState(initialVersionId || initial.bestVersionId),
     [tab, setTab] = useState<"html" | "css" | "js">("html"),
     [running, setRunning] = useState<{
       document: string;
       compare: string;
     } | null>(() => ({
-      document: buildDocument(initial.versions.find((version) => version.id === initial.bestVersionId)!),
+      document: buildDocument(initial.versions.find((version) => version.id === (initialVersionId || initial.bestVersionId))!),
       compare: "",
     })),
     [expanded, setExpanded] = useState(false),
@@ -197,7 +201,7 @@ export default function Editor({
       <header className="editor-heading">
         <button onClick={onClose}>
           <ArrowLeft size={16} />
-          返回案例库
+          {returnLabel}
         </button>
         <div>
           <h1>{item.title || "新建案例"}</h1>
