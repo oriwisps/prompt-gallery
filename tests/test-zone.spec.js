@@ -28,7 +28,12 @@ test("test zone groups implementations by prompt and copies the current prompt",
   await expect(page.locator(".test-card-grid .case-card")).toHaveCount(1);
   await expect(page.getByRole("heading", { name: "鹈鹕测试" })).toBeVisible();
   await page.getByRole("button", { name: "打开测试记录 鹈鹕测试" }).click();
-  await expect(page.locator(".test-version-item")).toHaveCount(2);
+  await expect(page.locator(".test-version-item")).toHaveCount(3);
+  await page.locator(".test-version-item").nth(2).locator("button").first().click();
+  await expect(page.locator(".test-metadata")).toContainText("MiMo V2.6 Pro");
+  await expect.poll(() => page.frameLocator(".test-preview-stage iframe").locator("html").evaluate(() => document.documentElement.style.getPropertyValue("--speed"))).toBe("1");
+  await page.frameLocator(".test-preview-stage iframe").locator("#btn-pause").evaluate((button) => button.click());
+  await expect(page.frameLocator(".test-preview-stage iframe").getByRole("button", { name: "继续" })).toBeVisible();
   await page.locator(".test-version-item").nth(1).locator("button").first().click();
   await expect(page.locator(".test-preview-toolbar")).toContainText("工作区实现");
 
@@ -48,16 +53,16 @@ test("test zone groups implementations by prompt and copies the current prompt",
   await expect(page.getByText("已保存", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "返回测试专区" }).click();
   await page.getByRole("button", { name: "打开测试记录 鹈鹕测试" }).click();
-  await expect(page.locator(".test-version-item")).toHaveCount(2);
+  await expect(page.locator(".test-version-item")).toHaveCount(3);
 
   await page.getByRole("button", { name: "记录新版本" }).click();
-  await expect(page.locator("#version-select option")).toHaveCount(3);
+  await expect(page.locator("#version-select option")).toHaveCount(4);
   await page.getByRole("button", { name: "保存", exact: true }).click();
   await expect(page.getByText("已保存", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "返回测试专区" }).click();
   await expect(page.locator(".test-card-grid .case-card")).toHaveCount(1);
   await page.getByRole("button", { name: "打开测试记录 鹈鹕测试" }).click();
-  await expect(page.locator(".test-version-item")).toHaveCount(3);
+  await expect(page.locator(".test-version-item")).toHaveCount(4);
 
   await page.getByRole("button", { name: "新建测试记录" }).click();
   await page.getByPlaceholder("给这个效果起个名字").fill("同提示词的另一个案例");
@@ -69,5 +74,5 @@ test("test zone groups implementations by prompt and copies the current prompt",
   await page.getByRole("button", { name: "返回测试专区" }).click();
   await expect(page.locator(".test-card-grid .case-card")).toHaveCount(1);
   await page.getByRole("button", { name: "打开测试记录 鹈鹕测试" }).click();
-  await expect(page.locator(".test-version-item")).toHaveCount(4);
+  await expect(page.locator(".test-version-item")).toHaveCount(5);
 });

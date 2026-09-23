@@ -7,6 +7,7 @@ import { copyText, randomId } from "./browser";
 import Cover from "./Cover";
 import pelicanHtml from "../examples/pelican-bicycle.html?raw";
 import pelicanIndexHtml from "../examples/pelican-bicycle-workspace.html?raw";
+import pelicanMimoHtml from "../examples/pelican-bicycle-mimo.html?raw";
 import "./test-zone.css";
 
 const prompt = "创建一个html，内容是svg绘制一个鹈鹕骑自行车的2D动画，你不需要测试，不要用任何 skill";
@@ -35,6 +36,15 @@ function pelicanCase(): Case {
     notes: "来自工作区保存的另一份完整 SVG 动画实现。",
     html: pelicanIndexHtml,
     createdAt: "2026-09-23T02:13:56.000Z",
+  }, {
+    ...first,
+    id: randomId(),
+    name: "MiMo V2.6 Pro 实现",
+    provider: "MiMo",
+    model: "MiMo V2.6 Pro",
+    notes: "来自工作区的 HTML、CSS 和 JavaScript 实现；已合并为独立 HTML，便于预览和导出。",
+    html: pelicanMimoHtml,
+    createdAt: "2026-09-23T02:50:26.000Z",
   }];
   return item;
 }
